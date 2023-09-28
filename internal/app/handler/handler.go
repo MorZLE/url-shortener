@@ -52,7 +52,7 @@ func (h *AppHandler) URLShortener(w http.ResponseWriter, r *http.Request) {
 	}
 
 	shortURL, err := h.logic.URLShorter(string(body))
-	log.Println("shortURL:", shortURL)
+
 	if err != nil {
 		http.Error(w, "Error shorting URL", http.StatusBadRequest)
 		return
@@ -62,8 +62,9 @@ func (h *AppHandler) URLShortener(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	log.Println("Created short URL:", shortURL)
-	// Echo the URL string in the response
+
 	_, err = fmt.Fprint(w, shortURL)
+
 	if err != nil {
 		return
 	}
@@ -71,12 +72,15 @@ func (h *AppHandler) URLShortener(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AppHandler) URLGetID(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Query().Get("id")
+	id := mux.Vars(r)["id"]
+	log.Println("id:", id)
 	url, err := h.logic.URLGetID(id)
 	if err != nil {
 		http.Error(w, "Error getting URL", http.StatusBadRequest)
 		return
 	}
+	log.Println("отправлен url:", url)
 	w.Header().Set("Location", url)
+
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }
