@@ -24,6 +24,7 @@ type AppService struct {
 func (s *AppService) URLShorter(url string) (string, error) {
 	for {
 		shortURL := s.GenerateShortURL()
+		shortURL = "http://localhost:8080/" + shortURL
 		err := s.storage.Set(shortURL, url)
 		if err == nil {
 			return shortURL, nil
