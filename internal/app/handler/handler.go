@@ -73,10 +73,10 @@ func (h *AppHandler) URLShortener(w http.ResponseWriter, r *http.Request) {
 
 func (h *AppHandler) URLGetID(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
+	uri := fmt.Sprintf("http://localhost:8080/%s", id)
+	log.Println("uri:", uri)
 
-	log.Println("id:", id)
-
-	url, err := h.logic.URLGetID(id)
+	url, err := h.logic.URLGetID(uri)
 	if err != nil {
 		log.Println("Error getting URL:", err)
 		http.Error(w, "Error getting URL", http.StatusBadRequest)
@@ -85,7 +85,6 @@ func (h *AppHandler) URLGetID(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("отправлен url:", url)
 
-	w.WriteHeader(http.StatusTemporaryRedirect)
 	w.Header().Set("Location", url)
-
+	w.WriteHeader(http.StatusTemporaryRedirect)
 }
