@@ -28,7 +28,7 @@ func (h *AppHandler) RunServer() {
 
 	router := mux.NewRouter()
 
-	router.HandleFunc(`/d`, h.URLShortener).Methods(http.MethodPost)
+	router.HandleFunc(`/`, h.URLShortener).Methods(http.MethodPost)
 	router.HandleFunc(`/{id}`, h.URLGetID).Methods(http.MethodGet)
 
 	log.Println("Listening on port 8080")
