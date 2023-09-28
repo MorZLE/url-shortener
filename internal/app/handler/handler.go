@@ -5,7 +5,6 @@ import (
 	"github.com/MorZLE/url-shortener/internal/app/service"
 	"github.com/gorilla/mux"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 )
@@ -37,7 +36,7 @@ func (h *AppHandler) RunServer() {
 }
 
 func (h *AppHandler) URLShortener(w http.ResponseWriter, r *http.Request) {
-	body, err := ioutil.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)
 
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
@@ -60,8 +59,10 @@ func (h *AppHandler) URLShortener(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 
 	// Echo the URL string in the response
-	fmt.Fprint(w, shortUrl)
-
+	_, err = fmt.Fprint(w, shortUrl)
+	if err != nil {
+		return
+	}
 }
 
 func (h *AppHandler) URLGetID(w http.ResponseWriter, r *http.Request) {
