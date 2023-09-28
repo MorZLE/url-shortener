@@ -28,7 +28,7 @@ func (h *AppHandler) RunServer() {
 
 	router := mux.NewRouter()
 
-	router.HandleFunc(`/}`, h.URLShortener).Methods(http.MethodPost)
+	router.HandleFunc(`/d`, h.URLShortener).Methods(http.MethodPost)
 	router.HandleFunc(`/{id}`, h.URLGetID).Methods(http.MethodGet)
 
 	log.Println("Listening on port 8080")
@@ -36,8 +36,9 @@ func (h *AppHandler) RunServer() {
 }
 
 func (h *AppHandler) URLShortener(w http.ResponseWriter, r *http.Request) {
-	body, err := io.ReadAll(r.Body)
 
+	body, err := io.ReadAll(r.Body)
+	log.Println("Получен url:", string(body))
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
@@ -51,6 +52,7 @@ func (h *AppHandler) URLShortener(w http.ResponseWriter, r *http.Request) {
 	}
 
 	shortURL, err := h.logic.URLShorter(string(body))
+	log.Println("shortURL:", shortURL)
 	if err != nil {
 		http.Error(w, "Error shorting URL", http.StatusBadRequest)
 		return
@@ -59,7 +61,7 @@ func (h *AppHandler) URLShortener(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 
 	w.WriteHeader(http.StatusCreated)
-
+	log.Println("Created short URL:", shortURL)
 	// Echo the URL string in the response
 	_, err = fmt.Fprint(w, shortURL)
 	if err != nil {
