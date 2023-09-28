@@ -50,7 +50,7 @@ func (h *AppHandler) URLShortener(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shortUrl, err := h.logic.UrlShorter(string(body))
+	shortURL, err := h.logic.URLShorter(string(body))
 	if err != nil {
 		http.Error(w, "Error shorting URL", http.StatusBadRequest)
 		return
@@ -59,7 +59,7 @@ func (h *AppHandler) URLShortener(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 
 	// Echo the URL string in the response
-	_, err = fmt.Fprint(w, shortUrl)
+	_, err = fmt.Fprint(w, shortURL)
 	if err != nil {
 		return
 	}
@@ -67,7 +67,7 @@ func (h *AppHandler) URLShortener(w http.ResponseWriter, r *http.Request) {
 
 func (h *AppHandler) URLGetID(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
-	url, err := h.logic.UrlGetID(id)
+	url, err := h.logic.URLGetID(id)
 	if err != nil {
 		http.Error(w, "Error getting URL", http.StatusBadRequest)
 		return

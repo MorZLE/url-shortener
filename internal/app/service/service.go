@@ -11,9 +11,9 @@ func NewService(s *storage.AppStorage) *AppService {
 }
 
 type InterfaceAppService interface {
-	UrlShorter(url string) (string, error)
-	UrlGetID(url string) (string, error)
-	GenerateShortUrl() string
+	URLShorter(url string) (string, error)
+	URLGetID(url string) (string, error)
+	GenerateShortURL() string
 }
 
 type AppService struct {
@@ -21,11 +21,11 @@ type AppService struct {
 	storage storage.AppStorage
 }
 
-func (s *AppService) UrlShorter(url string) (string, error) {
+func (s *AppService) URLShorter(url string) (string, error) {
 	var shortUrl string
 
 	for {
-		shortUrl := s.GenerateShortUrl()
+		shortUrl := s.GenerateShortURL()
 		err := s.storage.Set(shortUrl, url)
 		if err == nil {
 			break
@@ -34,8 +34,8 @@ func (s *AppService) UrlShorter(url string) (string, error) {
 	return shortUrl, nil
 }
 
-func (s *AppService) GenerateShortUrl() string {
-	rand.Seed(time.Now().UnixNano())
+func (s *AppService) GenerateShortURL() string {
+	rand.NewSource(time.Now().UnixNano())
 
 	chars := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
@@ -45,9 +45,10 @@ func (s *AppService) GenerateShortUrl() string {
 	}
 
 	return string(result)
+
 }
 
-func (s *AppService) UrlGetID(url string) (string, error) {
+func (s *AppService) URLGetID(url string) (string, error) {
 	val, err := s.storage.Get(url)
 	if err != nil {
 		return "", err
