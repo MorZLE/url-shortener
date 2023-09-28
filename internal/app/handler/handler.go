@@ -58,11 +58,14 @@ func (h *AppHandler) URLShortener(w http.ResponseWriter, r *http.Request) {
 	// Set the response content type
 	w.Header().Set("Content-Type", "text/plain")
 
+	w.WriteHeader(http.StatusCreated)
+
 	// Echo the URL string in the response
 	_, err = fmt.Fprint(w, shortURL)
 	if err != nil {
 		return
 	}
+
 }
 
 func (h *AppHandler) URLGetID(w http.ResponseWriter, r *http.Request) {
