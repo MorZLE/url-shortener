@@ -9,10 +9,11 @@ import (
 	"net/http"
 )
 
-func NewHandler(lg *service.AppService) *AppHandler {
-	return &AppHandler{logic: lg}
+func NewHandler(lg service.InterfaceAppService) AppHandler {
+	return AppHandler{logic: lg}
 }
 
+//go:generate go run github.com/vektra/mockery/v2@v2.20.0 --name=InterfaceAppHandler
 type InterfaceAppHandler interface {
 	RunServer()
 	URLShortener(w http.ResponseWriter, r *http.Request)
@@ -21,7 +22,7 @@ type InterfaceAppHandler interface {
 
 type AppHandler struct {
 	InterfaceAppHandler
-	logic *service.AppService
+	logic service.InterfaceAppService
 }
 
 func (h *AppHandler) RunServer() {
@@ -38,6 +39,7 @@ func (h *AppHandler) RunServer() {
 func (h *AppHandler) URLShortener(w http.ResponseWriter, r *http.Request) {
 
 	body, err := io.ReadAll(r.Body)
+
 	log.Println("Получен url:", string(body))
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
@@ -57,7 +59,7 @@ func (h *AppHandler) URLShortener(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error shorting URL", http.StatusBadRequest)
 		return
 	}
-	// Set the response content type
+
 	w.Header().Set("Content-Type", "text/plain")
 
 	w.WriteHeader(http.StatusCreated)

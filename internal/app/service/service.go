@@ -6,10 +6,11 @@ import (
 	"time"
 )
 
-func NewService(s *storage.AppStorage) *AppService {
-	return &AppService{storage: *s}
+func NewService(s storage.AppStorageInterface) AppService {
+	return AppService{Storage: s}
 }
 
+//go:generate go run github.com/vektra/mockery/v2@v2.20.0 --name=InterfaceAppService
 type InterfaceAppService interface {
 	URLShorter(url string) (string, error)
 	URLGetID(url string) (string, error)
@@ -18,14 +19,14 @@ type InterfaceAppService interface {
 
 type AppService struct {
 	InterfaceAppService
-	storage storage.AppStorage
+	Storage storage.AppStorageInterface
 }
 
 func (s *AppService) URLShorter(url string) (string, error) {
 	for {
 		shortURL := s.GenerateShortURL()
 		shortURL = "http://localhost:8080/" + shortURL
-		err := s.storage.Set(shortURL, url)
+		err := s.Storage.Set(shortURL, url)
 		if err == nil {
 			return shortURL, nil
 		}
@@ -47,7 +48,7 @@ func (s *AppService) GenerateShortURL() string {
 }
 
 func (s *AppService) URLGetID(url string) (string, error) {
-	val, err := s.storage.Get(url)
+	val, err := s.Storage.Get(url)
 	if err != nil {
 		return "", err
 	}
