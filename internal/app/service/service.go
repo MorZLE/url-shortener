@@ -22,16 +22,16 @@ type AppService struct {
 }
 
 func (s *AppService) URLShorter(url string) (string, error) {
-	var shortUrl string
+	var shortURL string
 
 	for {
-		shortUrl := s.GenerateShortURL()
-		err := s.storage.Set(shortUrl, url)
+		shortURL := s.GenerateShortURL()
+		err := s.storage.Set(shortURL, url)
 		if err == nil {
 			break
 		}
 	}
-	return shortUrl, nil
+	return shortURL, nil
 }
 
 func (s *AppService) GenerateShortURL() string {
