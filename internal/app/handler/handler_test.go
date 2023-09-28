@@ -3,6 +3,7 @@ package handler
 import (
 	"github.com/MorZLE/url-shortener/internal/app/service"
 	"github.com/MorZLE/url-shortener/internal/app/storage"
+	"github.com/MorZLE/url-shortener/internal/config"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -12,7 +13,6 @@ import (
 )
 
 func TestAppHandler_URLGetID(t *testing.T) {
-	//type mockFn func(r *mocks.InterfaceAppService)
 
 	type field struct {
 		logic service.InterfaceAppService
@@ -23,6 +23,10 @@ func TestAppHandler_URLGetID(t *testing.T) {
 		r *http.Request
 
 		//	m mockFn
+	}
+	cnf := config.Config{
+		FlagAddrShortener: "localhost:8080",
+		FlagAddrReq:       "localhost:8080",
 	}
 	tests := []struct {
 		name       string
@@ -44,6 +48,7 @@ func TestAppHandler_URLGetID(t *testing.T) {
 							"http://localhost:8080/AWcwasd": "http://localhost:8080/site.com",
 						},
 					},
+					Cnf: cnf,
 				},
 			},
 			wantStatus: http.StatusTemporaryRedirect,
@@ -61,6 +66,10 @@ func TestAppHandler_URLGetID(t *testing.T) {
 						M: map[string]string{
 							"http://localhost:8080/sefsfvce": "http://localhost:8080/site.com",
 						},
+					},
+					Cnf: config.Config{
+						FlagAddrShortener: "localhost:8080",
+						FlagAddrReq:       "localhost:8080",
 					},
 				},
 			},
@@ -80,6 +89,10 @@ func TestAppHandler_URLGetID(t *testing.T) {
 							"http://localhost:8080/sefsfvce": "http://localhost:8080/site.com",
 						},
 					},
+					Cnf: config.Config{
+						FlagAddrShortener: "localhost:8080",
+						FlagAddrReq:       "localhost:8080",
+					},
 				},
 			},
 			wantStatus: http.StatusBadRequest,
@@ -92,6 +105,7 @@ func TestAppHandler_URLGetID(t *testing.T) {
 
 			h := &AppHandler{
 				logic: tt.field.logic,
+				cnf:   cnf,
 			}
 			r.HandleFunc(`/{id}`, h.URLGetID).Methods(http.MethodGet)
 			r.ServeHTTP(tt.args.w, tt.args.r)
@@ -128,6 +142,10 @@ func TestAppHandler_URLShortener(t *testing.T) {
 					Storage: &storage.AppStorage{
 						M: map[string]string{},
 					},
+					Cnf: config.Config{
+						FlagAddrShortener: "localhost:8080",
+						FlagAddrReq:       "localhost:8080",
+					},
 				},
 			},
 			wantStatus: http.StatusCreated,
@@ -143,6 +161,10 @@ func TestAppHandler_URLShortener(t *testing.T) {
 				logic: &service.AppService{
 					Storage: &storage.AppStorage{
 						M: map[string]string{},
+					},
+					Cnf: config.Config{
+						FlagAddrShortener: "localhost:8080",
+						FlagAddrReq:       "localhost:8080",
 					},
 				},
 			},
