@@ -74,13 +74,16 @@ func (h *AppHandler) URLShortener(w http.ResponseWriter, r *http.Request) {
 func (h *AppHandler) URLGetID(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
 	log.Println("id:", id)
+
 	url, err := h.logic.URLGetID(id)
 	if err != nil {
+		log.Println("Error getting URL:", err)
 		http.Error(w, "Error getting URL", http.StatusBadRequest)
 		return
 	}
-	log.Println("отправлен url:", url)
-	w.Header().Set("Location", url)
 
+	log.Println("отправлен url:", url)
+
+	w.Header().Set("Location", url)
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }
