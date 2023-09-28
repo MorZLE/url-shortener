@@ -53,7 +53,7 @@ func (h *AppHandler) URLShortener(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shortURL, err := h.logic.URLShorter(string(body))
+	shortURL, err := h.logic.URLShorter("http://localhost:8080/" + string(body))
 
 	if err != nil {
 		http.Error(w, "Error shorting URL", http.StatusBadRequest)
