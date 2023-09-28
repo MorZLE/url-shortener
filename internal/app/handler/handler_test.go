@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -100,28 +101,64 @@ func TestAppHandler_URLGetID(t *testing.T) {
 }
 
 func TestAppHandler_URLShortener(t *testing.T) {
-	type fields struct {
-		InterfaceAppHandler InterfaceAppHandler
-		logic               *service.AppService
+
+	type field struct {
+		logic service.InterfaceAppService
 	}
+
 	type args struct {
-		w http.ResponseWriter
+		w *httptest.ResponseRecorder
 		r *http.Request
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name       string
+		args       args
+		wantStatus int
+		field      field
 	}{
-		{},
+		{
+			name: "Test case 1",
+
+			args: args{
+				w: httptest.NewRecorder(),
+				r: httptest.NewRequest(http.MethodPost, "http://localhost:8080/", strings.NewReader("https://practicum.yandex.ru/")),
+			},
+			field: field{
+				logic: &service.AppService{
+					Storage: &storage.AppStorage{
+						M: map[string]string{},
+					},
+				},
+			},
+			wantStatus: http.StatusCreated,
+		},
+		{
+			name: "Test case 2",
+
+			args: args{
+				w: httptest.NewRecorder(),
+				r: httptest.NewRequest(http.MethodPost, "http://localhost:8080/", strings.NewReader(" -3040svgbfb-0o-ow4gm'xmfbzdbdbzdb")),
+			},
+			field: field{
+				logic: &service.AppService{
+					Storage: &storage.AppStorage{
+						M: map[string]string{},
+					},
+				},
+			},
+			wantStatus: http.StatusCreated,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			r := mux.NewRouter()
+
 			h := &AppHandler{
-				InterfaceAppHandler: tt.fields.InterfaceAppHandler,
-				logic:               tt.fields.logic,
+				logic: tt.field.logic,
 			}
-			h.URLShortener(tt.args.w, tt.args.r)
+			r.HandleFunc(`/`, h.URLShortener).Methods(http.MethodPost)
+			r.ServeHTTP(tt.args.w, tt.args.r)
+			assert.Equal(t, tt.args.w.Code, tt.wantStatus)
 		})
 	}
 }
