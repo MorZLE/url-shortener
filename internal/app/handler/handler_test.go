@@ -25,8 +25,8 @@ func TestAppHandler_URLGetID(t *testing.T) {
 		//	m mockFn
 	}
 	cnf := config.Config{
-		FlagAddrShortener: "localhost:8080",
-		FlagAddrReq:       "localhost:8080",
+		FlagAddrShortener: "http://localhost:8080/",
+		FlagAddrReq:       "http://localhost:8080/",
 	}
 	tests := []struct {
 		name       string
@@ -67,10 +67,7 @@ func TestAppHandler_URLGetID(t *testing.T) {
 							"http://localhost:8080/sefsfvce": "http://localhost:8080/site.com",
 						},
 					},
-					Cnf: config.Config{
-						FlagAddrShortener: "localhost:8080",
-						FlagAddrReq:       "localhost:8080",
-					},
+					Cnf: cnf,
 				},
 			},
 			wantStatus: http.StatusBadRequest,
@@ -89,10 +86,7 @@ func TestAppHandler_URLGetID(t *testing.T) {
 							"http://localhost:8080/sefsfvce": "http://localhost:8080/site.com",
 						},
 					},
-					Cnf: config.Config{
-						FlagAddrShortener: "localhost:8080",
-						FlagAddrReq:       "localhost:8080",
-					},
+					Cnf: cnf,
 				},
 			},
 			wantStatus: http.StatusBadRequest,
@@ -124,6 +118,11 @@ func TestAppHandler_URLShortener(t *testing.T) {
 		w *httptest.ResponseRecorder
 		r *http.Request
 	}
+	cnf := config.Config{
+		FlagAddrShortener: "http://localhost:8080/",
+		FlagAddrReq:       "http://localhost:8080/",
+	}
+
 	tests := []struct {
 		name       string
 		args       args
@@ -142,10 +141,7 @@ func TestAppHandler_URLShortener(t *testing.T) {
 					Storage: &storage.AppStorage{
 						M: map[string]string{},
 					},
-					Cnf: config.Config{
-						FlagAddrShortener: "localhost:8080",
-						FlagAddrReq:       "localhost:8080",
-					},
+					Cnf: cnf,
 				},
 			},
 			wantStatus: http.StatusCreated,
@@ -162,10 +158,7 @@ func TestAppHandler_URLShortener(t *testing.T) {
 					Storage: &storage.AppStorage{
 						M: map[string]string{},
 					},
-					Cnf: config.Config{
-						FlagAddrShortener: "localhost:8080",
-						FlagAddrReq:       "localhost:8080",
-					},
+					Cnf: cnf,
 				},
 			},
 			wantStatus: http.StatusCreated,
@@ -177,6 +170,7 @@ func TestAppHandler_URLShortener(t *testing.T) {
 
 			h := &AppHandler{
 				logic: tt.field.logic,
+				cnf:   cnf,
 			}
 			r.HandleFunc(`/`, h.URLShortener).Methods(http.MethodPost)
 			r.ServeHTTP(tt.args.w, tt.args.r)

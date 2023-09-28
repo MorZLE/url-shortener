@@ -77,7 +77,7 @@ func (h *AppHandler) URLShortener(w http.ResponseWriter, r *http.Request) {
 
 func (h *AppHandler) URLGetID(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
-	uri := fmt.Sprintf("http://%s/%s", h.cnf.FlagAddrReq, id)
+	uri := h.cnf.FlagAddrShortener + id
 
 	log.Println("uri:", uri)
 

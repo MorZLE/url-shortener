@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"github.com/MorZLE/url-shortener/internal/app/storage"
 	"github.com/MorZLE/url-shortener/internal/config"
 	"math/rand"
@@ -28,7 +27,7 @@ type AppService struct {
 func (s *AppService) URLShorter(url string) (string, error) {
 	for {
 		shortURL := s.GenerateShortURL()
-		shortURL = fmt.Sprintf("http://%s/%s", s.Cnf.FlagAddrShortener, shortURL)
+		shortURL = s.Cnf.FlagAddrShortener + shortURL
 		err := s.Storage.Set(shortURL, url)
 		if err == nil {
 			return shortURL, nil
