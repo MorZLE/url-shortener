@@ -29,7 +29,7 @@ func (h *AppHandler) RunServer() {
 	router := mux.NewRouter()
 
 	router.HandleFunc(`/`, h.URLShortener).Methods(http.MethodPost)
-	router.HandleFunc(`/{id}`, h.URLGetID).Methods(http.MethodGet)
+	router.HandleFunc(`/`, h.URLGetID).Methods(http.MethodGet)
 
 	log.Println("Listening on port 8080")
 	log.Fatal(http.ListenAndServe(":8080", router))
@@ -72,7 +72,7 @@ func (h *AppHandler) URLShortener(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AppHandler) URLGetID(w http.ResponseWriter, r *http.Request) {
-	id := mux.Vars(r)["id"]
+	id := r.URL.Query().Get("id")
 	log.Println("id:", id)
 	url, err := h.logic.URLGetID(id)
 	if err != nil {
