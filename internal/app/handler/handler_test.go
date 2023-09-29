@@ -25,8 +25,8 @@ func TestAppHandler_URLGetID(t *testing.T) {
 		//	m mockFn
 	}
 	cnf := config.Config{
-		FlagAddrShortener: "http://127.0.0.1:8080",
-		FlagAddrReq:       "http://127.0.0.1:8080",
+		BaseURL:    "http://127.0.0.1:8080",
+		ServerAddr: "http://127.0.0.1:8080",
 	}
 	tests := []struct {
 		name       string
@@ -119,8 +119,8 @@ func TestAppHandler_URLShortener(t *testing.T) {
 		r *http.Request
 	}
 	cnf := config.Config{
-		FlagAddrShortener: "http://127.0.0.1:8080",
-		FlagAddrReq:       "http://127.0.0.1:8080",
+		BaseURL:    "http://127.0.0.1:8080",
+		ServerAddr: "http://127.0.0.1:8080",
 	}
 
 	tests := []struct {
