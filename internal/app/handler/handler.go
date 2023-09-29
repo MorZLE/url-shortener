@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"github.com/MorZLE/url-shortener/internal/app/logger"
 	"github.com/MorZLE/url-shortener/internal/app/service"
 	"github.com/MorZLE/url-shortener/internal/config"
 	"github.com/gorilla/mux"
@@ -28,11 +29,11 @@ type AppHandler struct {
 }
 
 func (h *AppHandler) RunServer() {
-
+	logger.Initialize()
 	router := mux.NewRouter()
 
-	router.HandleFunc(`/`, h.URLShortener).Methods(http.MethodPost)
-	router.HandleFunc(`/{id}`, h.URLGetID).Methods(http.MethodGet)
+	router.Handle(`/`, logger.RequestLogger(h.URLShortener)).Methods(http.MethodPost)
+	router.Handle(`/{id}`, logger.RequestLogger(h.URLGetID)).Methods(http.MethodGet)
 
 	log.Println("Run server ", h.cnf.ServerAddr)
 
