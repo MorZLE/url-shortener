@@ -25,8 +25,8 @@ func TestAppHandler_URLGetID(t *testing.T) {
 		//	m mockFn
 	}
 	cnf := config.Config{
-		FlagAddrShortener: "http://localhost:8080/",
-		FlagAddrReq:       "http://localhost:8080/",
+		FlagAddrShortener: "http://127.0.0.1:8080",
+		FlagAddrReq:       "http://127.0.0.1:8080",
 	}
 	tests := []struct {
 		name       string
@@ -39,13 +39,13 @@ func TestAppHandler_URLGetID(t *testing.T) {
 
 			args: args{
 				w: &httptest.ResponseRecorder{},
-				r: httptest.NewRequest(http.MethodGet, "http://localhost:8080/AWcwasd", nil),
+				r: httptest.NewRequest(http.MethodGet, "http://127.0.0.1:8080/AWcwasd", nil),
 			},
 			field: field{
 				logic: &service.AppService{
 					Storage: &storage.AppStorage{
 						M: map[string]string{
-							"http://localhost:8080/AWcwasd": "http://localhost:8080/site.com",
+							"http://127.0.0.1:8080/AWcwasd": "http://127.0.0.1:8080/site.com",
 						},
 					},
 					Cnf: cnf,
@@ -58,13 +58,13 @@ func TestAppHandler_URLGetID(t *testing.T) {
 
 			args: args{
 				w: &httptest.ResponseRecorder{},
-				r: httptest.NewRequest(http.MethodGet, "http://localhost:8080/wadaw", nil),
+				r: httptest.NewRequest(http.MethodGet, "http://127.0.0.1:8080/wadaw", nil),
 			},
 			field: field{
 				logic: &service.AppService{
 					Storage: &storage.AppStorage{
 						M: map[string]string{
-							"http://localhost:8080/sefsfvce": "http://localhost:8080/site.com",
+							"http://127.0.0.1/sefsfvce": "http://127.0.0.1/site.com",
 						},
 					},
 					Cnf: cnf,
@@ -77,13 +77,13 @@ func TestAppHandler_URLGetID(t *testing.T) {
 
 			args: args{
 				w: &httptest.ResponseRecorder{},
-				r: httptest.NewRequest(http.MethodGet, "http://localhost:8080/gr43ge34g34t3g345g34g", nil),
+				r: httptest.NewRequest(http.MethodGet, "http://127.0.0.1:8080/gr43ge34g34t3g345g34g", nil),
 			},
 			field: field{
 				logic: &service.AppService{
 					Storage: &storage.AppStorage{
 						M: map[string]string{
-							"http://localhost:8080/sefsfvce": "http://localhost:8080/site.com",
+							"http://127.0.0.1:8080/sefsfvce": "http://127.0.0.1:8080/site.com",
 						},
 					},
 					Cnf: cnf,
@@ -119,8 +119,8 @@ func TestAppHandler_URLShortener(t *testing.T) {
 		r *http.Request
 	}
 	cnf := config.Config{
-		FlagAddrShortener: "http://localhost:8080/",
-		FlagAddrReq:       "http://localhost:8080/",
+		FlagAddrShortener: "http://127.0.0.1:8080",
+		FlagAddrReq:       "http://127.0.0.1:8080",
 	}
 
 	tests := []struct {
