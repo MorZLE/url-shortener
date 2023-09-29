@@ -17,7 +17,7 @@ type Config struct {
 func ParseFlags(p *Config) *Config {
 
 	flag.StringVar(&p.FlagAddrReq, "a", ":8080", "address and port to run server")
-	flag.StringVar(&p.FlagAddrShortener, "b", "http://127.0.0.1:8080/", "address shortURLer")
+	flag.StringVar(&p.FlagAddrShortener, "b", "http://127.0.0.1:8080", "address shortURLer")
 
 	flag.Parse()
 

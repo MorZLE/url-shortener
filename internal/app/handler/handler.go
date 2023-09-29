@@ -78,8 +78,8 @@ func (h *AppHandler) URLShortener(w http.ResponseWriter, r *http.Request) {
 
 func (h *AppHandler) URLGetID(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
-	uri := h.cnf.FlagAddrShortener + id
-	log.Println("uri:", uri)
+	uri := h.cnf.FlagAddrShortener + "/" + id
+	log.Println("uriSHORT:", uri)
 
 	url, err := h.logic.URLGetID(uri)
 	if err != nil {
