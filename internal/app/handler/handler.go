@@ -27,7 +27,7 @@ func (h *Handler) RunServer() {
 	logger.Initialize()
 	router := mux.NewRouter()
 	router.Handle(`/`, logger.RequestLogger(h.URLShortener)).Methods(http.MethodPost)
-	router.Handle(`/api/shorten,`, logger.RequestLogger(h.JsonURLShort)).Methods(http.MethodPost)
+	router.Handle(`/api/shorten,`, logger.RequestLogger(h.JSONURLShort)).Methods(http.MethodPost)
 	router.Handle(`/{id}`, logger.RequestLogger(h.URLGetID)).Methods(http.MethodGet)
 
 	log.Println("Run server ", h.cnf.ServerAddr)
@@ -35,7 +35,7 @@ func (h *Handler) RunServer() {
 	log.Fatal(http.ListenAndServe(h.cnf.ServerAddr, router))
 }
 
-func (h *Handler) JsonURLShort(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) JSONURLShort(w http.ResponseWriter, r *http.Request) {
 	var url constjson.URLLong
 	var buf bytes.Buffer
 
@@ -50,7 +50,7 @@ func (h *Handler) JsonURLShort(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	longURL := url.Url
+	longURL := url.URL
 	shortURL, err := h.logic.URLShorter(longURL)
 	if err != nil {
 		http.Error(w, "Error shorting URL", http.StatusBadRequest)

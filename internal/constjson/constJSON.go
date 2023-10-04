@@ -1,7 +1,7 @@
 package constjson
 
 type URLLong struct {
-	Url string `json:"url"`
+	URL string `json:"url"`
 }
 
 type URLShort struct {
