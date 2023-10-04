@@ -150,5 +150,6 @@ func (h *Handler) JSONURLGetID(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error shorting URL", http.StatusBadRequest)
 		return
 	}
-	h.ResponseValueJSON(w, constjson.URLShort{Result: shortURL})
+	w.Header().Set("Location", shortURL)
+	w.WriteHeader(http.StatusTemporaryRedirect)
 }
