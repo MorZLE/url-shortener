@@ -28,7 +28,7 @@ func Initialize() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// устанавливаем синглтон
+	// устанавливаем синглтон3452к
 	Log = zl
 }
 
@@ -74,4 +74,8 @@ func RequestLogger(h http.HandlerFunc) http.Handler {
 			zap.Int("content_size", loggingResponseWriter.Size),
 		)
 	})
+}
+
+func ShortURL(url string) {
+	Log.Info("CreateShortURL", zap.String("url", url))
 }

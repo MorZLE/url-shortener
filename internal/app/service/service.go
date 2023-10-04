@@ -1,55 +1,41 @@
 package service
 
 import (
-	"github.com/MorZLE/url-shortener/internal/app/storage"
+	"github.com/MorZLE/url-shortener/internal/app/logger"
 	"github.com/MorZLE/url-shortener/internal/config"
-	"math/rand"
+	"github.com/MorZLE/url-shortener/internal/domains"
+	"github.com/speps/go-hashids"
 	"time"
 )
 
-func NewService(s storage.AppStorageInterface, cnf *config.Config) AppService {
-	return AppService{Storage: s, Cnf: *cnf}
+func NewService(s domains.StorageInterface, cnf *config.Config) Service {
+	return Service{
+		Storage: s,
+		Cnf:     *cnf,
+	}
 }
 
-//go:generate go run github.com/vektra/mockery/v2@v2.20.0 --name=InterfaceAppService
-type InterfaceAppService interface {
-	URLShorter(url string) (string, error)
-	URLGetID(url string) (string, error)
-	GenerateShortURL() string
-}
-
-type AppService struct {
-	InterfaceAppService
-	Storage storage.AppStorageInterface
+type Service struct {
+	Storage domains.StorageInterface
 	Cnf     config.Config
 }
 
-func (s *AppService) URLShorter(url string) (string, error) {
-	for {
-		shortURL := s.GenerateShortURL()
-		shortURL = s.Cnf.BaseURL + "/" + shortURL
-		err := s.Storage.Set(shortURL, url)
-		if err == nil {
-			return shortURL, nil
-		}
+func (s *Service) URLShorter(url string) (string, error) {
+	hd := hashids.NewData()
+	hd.MinLength = 6
+	h, _ := hashids.NewWithData(hd)
+	now := time.Now()
+	shortURL, _ := h.Encode([]int{int(now.Unix())})
+	err := s.Storage.Set(shortURL, url)
+	shortURL = s.Cnf.BaseURL + "/" + shortURL
+	if err != nil {
+		return "", err
 	}
+	logger.ShortURL(shortURL)
+	return shortURL, nil
 }
 
-func (s *AppService) GenerateShortURL() string {
-	rand.NewSource(time.Now().UnixNano())
-
-	chars := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-
-	result := make([]byte, 8)
-	for i := 0; i < 8; i++ {
-		result[i] = chars[rand.Intn(len(chars))]
-	}
-
-	return string(result)
-
-}
-
-func (s *AppService) URLGetID(url string) (string, error) {
+func (s *Service) URLGetID(url string) (string, error) {
 	val, err := s.Storage.Get(url)
 	if err != nil {
 		return "", err
