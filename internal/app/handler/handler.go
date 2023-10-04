@@ -1,9 +1,12 @@
 package handler
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/MorZLE/url-shortener/internal/app/logger"
 	"github.com/MorZLE/url-shortener/internal/config"
+	"github.com/MorZLE/url-shortener/internal/constJSON"
 	"github.com/MorZLE/url-shortener/internal/domains"
 	"github.com/gorilla/mux"
 	"io"
@@ -24,11 +27,53 @@ func (h *Handler) RunServer() {
 	logger.Initialize()
 	router := mux.NewRouter()
 	router.Handle(`/`, logger.RequestLogger(h.URLShortener)).Methods(http.MethodPost)
+	router.Handle(`/api/shorten,`, logger.RequestLogger(h.JsonURLShort)).Methods(http.MethodPost)
 	router.Handle(`/{id}`, logger.RequestLogger(h.URLGetID)).Methods(http.MethodGet)
 
 	log.Println("Run server ", h.cnf.ServerAddr)
 
 	log.Fatal(http.ListenAndServe(h.cnf.ServerAddr, router))
+}
+
+func (h *Handler) JsonURLShort(w http.ResponseWriter, r *http.Request) {
+	var url constJSON.URLLong
+	var buf bytes.Buffer
+
+	_, err := buf.ReadFrom(r.Body)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	if err = json.Unmarshal(buf.Bytes(), &url); err != nil {
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
+
+	longURL := url.Url
+	shortURL, err := h.logic.URLShorter(longURL)
+	if err != nil {
+		http.Error(w, "Error shorting URL", http.StatusBadRequest)
+		return
+	}
+	h.ResponseValueJSON(w, constJSON.URLShort{Result: shortURL})
+
+}
+func (h *Handler) ResponseValueJSON(res http.ResponseWriter, obj constJSON.URLShort) {
+	resp, err := json.Marshal(&obj)
+	if err != nil {
+		http.Error(res, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
+	res.Header().Set("Content-Type", "application/json")
+
+	res.WriteHeader(http.StatusOK)
+
+	_, err = res.Write(resp)
+	if err != nil {
+		return
+	}
+
 }
 
 func (h *Handler) URLShortener(w http.ResponseWriter, r *http.Request) {
@@ -68,9 +113,6 @@ func (h *Handler) URLShortener(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) URLGetID(w http.ResponseWriter, r *http.Request) {
-	//id := mux.Vars(r)["id"]
-	//uri := h.cnf.BaseURL + "/" + id
-	//log.Println("uriSHORT:", uri)
 
 	url, err := h.logic.URLGetID(mux.Vars(r)["id"])
 	if err != nil {
