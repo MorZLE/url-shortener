@@ -4,10 +4,11 @@ import (
 	"github.com/MorZLE/url-shortener/internal/consterr"
 )
 
-func NewStorage() *AppStorage {
-	return &AppStorage{m: make(map[string]string)}
+func NewStorage() AppStorage {
+	return AppStorage{M: make(map[string]string)}
 }
 
+//go:generate go run github.com/vektra/mockery/v2@v2.20.0 --name=AppStorageInterface
 type AppStorageInterface interface {
 	Set(key string, value string) error
 	Get(key string) (string, error)
@@ -15,20 +16,20 @@ type AppStorageInterface interface {
 
 type AppStorage struct {
 	AppStorageInterface
-	m map[string]string
+	M map[string]string
 }
 
 func (s *AppStorage) Set(key string, value string) error {
-	if s.m[key] != "" {
+	if s.M[key] != "" {
 		return consterr.ErrKeyBusy
 	}
-	s.m[key] = value
+	s.M[key] = value
 	return nil
 }
 
 func (s *AppStorage) Get(key string) (string, error) {
-	if s.m[key] != "" {
-		return s.m[key], nil
+	if s.M[key] != "" {
+		return s.M[key], nil
 	}
 	return "", consterr.ErrNotFound
 }

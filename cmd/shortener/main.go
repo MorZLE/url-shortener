@@ -9,8 +9,8 @@ import (
 func main() {
 
 	st := storage.NewStorage()
-	lgc := service.NewService(st)
-	hdr := handler.NewHandler(lgc)
+	lgc := service.NewService(&st)
+	hdr := handler.NewHandler(&lgc)
 
 	hdr.RunServer()
 
