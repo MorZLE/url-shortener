@@ -48,6 +48,7 @@ func (h *Handler) JSONURLShort(w http.ResponseWriter, r *http.Request) {
 
 	if err = json.Unmarshal(buf.Bytes(), &url); err != nil {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		log.Println("Ошибка чтения JSON запроса:", err)
 		return
 	}
 
@@ -64,9 +65,10 @@ func (h *Handler) ResponseValueJSON(res http.ResponseWriter, obj constjson.URLSh
 	resp, err := json.Marshal(&obj)
 	if err != nil {
 		http.Error(res, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		log.Println("Ошибка создания JSON ответа:", err)
 		return
 	}
-	res.Header().Set("Accept", "application/json")
+
 	res.Header().Set("Content-Type", "application/json")
 
 	res.WriteHeader(http.StatusOK)
