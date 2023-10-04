@@ -105,7 +105,6 @@ func (h *Handler) URLShortener(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 
 	_, err = fmt.Fprint(w, shortURL)
-
 	if err != nil {
 		return
 	}
