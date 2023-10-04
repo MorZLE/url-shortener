@@ -5,5 +5,5 @@ type URLLong struct {
 }
 
 type URLShort struct {
-	Result string `json:"url"`
+	Result string `json:"result"`
 }
