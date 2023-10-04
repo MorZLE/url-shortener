@@ -27,7 +27,9 @@ type AppService struct {
 func (s *AppService) URLShorter(url string) (string, error) {
 	for {
 		shortURL := s.GenerateShortURL()
+
 		shortURL = s.Cnf.BaseURL + "/" + shortURL
+
 		err := s.Storage.Set(shortURL, url)
 		if err == nil {
 			return shortURL, nil
