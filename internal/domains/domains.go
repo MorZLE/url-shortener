@@ -8,7 +8,7 @@ type HandlerInterface interface {
 	URLShortener(w http.ResponseWriter, r *http.Request)
 	URLGetID(w http.ResponseWriter, r *http.Request)
 	JsonURLShort(w http.ResponseWriter, r *http.Request)
-
+}
 
 //go:generate go run github.com/vektra/mockery/v2@v2.20.0 --name=AppStorageInterface
 type StorageInterface interface {
