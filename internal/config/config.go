@@ -2,6 +2,7 @@ package config
 
 import (
 	"flag"
+	"os"
 )
 
 func NewConfig() *Config {
@@ -10,36 +11,24 @@ func NewConfig() *Config {
 }
 
 type Config struct {
-	FlagAddrReq       string
-	FlagAddrShortener string
+	ServerAddr string
+	BaseURL    string
 }
 
 func ParseFlags(p *Config) *Config {
 
-	flag.StringVar(&p.FlagAddrReq, "a", ":8080", "address and port to run server")
-	flag.StringVar(&p.FlagAddrShortener, "b", "http://127.0.0.1:8080", "address shortURLer")
+	flag.StringVar(&p.ServerAddr, "a", ":8080", "address and port to run server")
+	flag.StringVar(&p.BaseURL, "b", "http://127.0.0.1:8080", "address shortURLer")
 
 	flag.Parse()
 
-	//if envRunAddr := os.Getenv("ADDRESS"); envRunAddr != "" {
-	//	//	p.FlagAddr = envRunAddr
-	//	//}
-	//	//
-	//	//if ReportInterval := os.Getenv("REPORT_INTERVAL "); ReportInterval != "" {
-	//	//	ReportInterval, err := strconv.Atoi(ReportInterval)
-	//	//	if err != nil {
-	//	//		log.Fatalln("Ошибка преобразования строки в число:", err)
-	//	//
-	//	//	}
-	//	//	p.FlagReportInterval = ReportInterval
-	//	//}
-	//	//
-	//	//if PollInterval := os.Getenv("POLL_INTERVAL "); PollInterval != "" {
-	//	//	PollInterval, err := strconv.Atoi(PollInterval)
-	//	//	if err != nil {
-	//	//		log.Fatalln("Ошибка преобразования строки в число:", err)
-	//	//	}
-	//	//	p.FlagPollInterval = PollInterval
-	//	//}
+	if serverAddr := os.Getenv("SERVER_ADDRESS"); serverAddr != "" {
+		p.ServerAddr = serverAddr
+	}
+
+	if baseURL := os.Getenv("BASE_URL"); baseURL != "" {
+		p.BaseURL = baseURL
+	}
+
 	return p
 }

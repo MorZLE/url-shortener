@@ -34,9 +34,9 @@ func (h *AppHandler) RunServer() {
 	router.HandleFunc(`/`, h.URLShortener).Methods(http.MethodPost)
 	router.HandleFunc(`/{id}`, h.URLGetID).Methods(http.MethodGet)
 
-	log.Println("Run server ", h.cnf.FlagAddrReq)
+	log.Println("Run server ", h.cnf.ServerAddr)
 
-	log.Fatal(http.ListenAndServe(h.cnf.FlagAddrReq, router))
+	log.Fatal(http.ListenAndServe(h.cnf.ServerAddr, router))
 }
 
 func (h *AppHandler) URLShortener(w http.ResponseWriter, r *http.Request) {
@@ -77,7 +77,7 @@ func (h *AppHandler) URLShortener(w http.ResponseWriter, r *http.Request) {
 
 func (h *AppHandler) URLGetID(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
-	uri := h.cnf.FlagAddrShortener + "/" + id
+	uri := h.cnf.BaseURL + "/" + id
 	log.Println("uriSHORT:", uri)
 
 	url, err := h.logic.URLGetID(uri)
