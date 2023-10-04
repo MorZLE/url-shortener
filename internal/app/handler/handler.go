@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/MorZLE/url-shortener/internal/app/logger"
 	"github.com/MorZLE/url-shortener/internal/config"
-	"github.com/MorZLE/url-shortener/internal/constJSON"
+	"github.com/MorZLE/url-shortener/internal/constjson"
 	"github.com/MorZLE/url-shortener/internal/domains"
 	"github.com/gorilla/mux"
 	"io"
@@ -36,7 +36,7 @@ func (h *Handler) RunServer() {
 }
 
 func (h *Handler) JsonURLShort(w http.ResponseWriter, r *http.Request) {
-	var url constJSON.URLLong
+	var url constjson.URLLong
 	var buf bytes.Buffer
 
 	_, err := buf.ReadFrom(r.Body)
@@ -56,10 +56,10 @@ func (h *Handler) JsonURLShort(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error shorting URL", http.StatusBadRequest)
 		return
 	}
-	h.ResponseValueJSON(w, constJSON.URLShort{Result: shortURL})
+	h.ResponseValueJSON(w, constjson.URLShort{Result: shortURL})
 
 }
-func (h *Handler) ResponseValueJSON(res http.ResponseWriter, obj constJSON.URLShort) {
+func (h *Handler) ResponseValueJSON(res http.ResponseWriter, obj constjson.URLShort) {
 	resp, err := json.Marshal(&obj)
 	if err != nil {
 		http.Error(res, http.StatusText(http.StatusNotFound), http.StatusNotFound)
