@@ -28,6 +28,7 @@ func (h *Handler) RunServer() {
 	router := mux.NewRouter()
 	router.Handle(`/`, logger.RequestLogger(h.URLShortener)).Methods(http.MethodPost)
 	router.Handle(`/api/shorten,`, logger.RequestLogger(h.JSONURLShort)).Methods(http.MethodPost)
+	router.Handle(`/api/shorten,`, logger.RequestLogger(h.JSONURLGetID)).Methods(http.MethodGet)
 	router.Handle(`/{id}`, logger.RequestLogger(h.URLGetID)).Methods(http.MethodGet)
 
 	log.Println("Run server ", h.cnf.ServerAddr)
@@ -65,6 +66,7 @@ func (h *Handler) ResponseValueJSON(res http.ResponseWriter, obj constjson.URLSh
 		http.Error(res, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
 	}
+	res.Header().Set("Accept", "application/json")
 	res.Header().Set("Content-Type", "application/json")
 
 	res.WriteHeader(http.StatusOK)
@@ -124,4 +126,29 @@ func (h *Handler) URLGetID(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Location", url)
 	w.WriteHeader(http.StatusTemporaryRedirect)
+}
+
+func (h *Handler) JSONURLGetID(w http.ResponseWriter, r *http.Request) {
+
+	var url constjson.URLLong
+	var buf bytes.Buffer
+
+	_, err := buf.ReadFrom(r.Body)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	if err = json.Unmarshal(buf.Bytes(), &url); err != nil {
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
+
+	longURL := url.URL
+	shortURL, err := h.logic.URLGetID(longURL[len(longURL)-8:])
+	if err != nil {
+		http.Error(w, "Error shorting URL", http.StatusBadRequest)
+		return
+	}
+	h.ResponseValueJSON(w, constjson.URLShort{Result: shortURL})
 }
