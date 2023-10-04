@@ -66,7 +66,6 @@ func (h *AppHandler) URLShortener(w http.ResponseWriter, r *http.Request) {
 	log.Println("Created short URL:", shortURL)
 
 	_, err = fmt.Fprint(w, shortURL)
-
 	if err != nil {
 		return
 	}
