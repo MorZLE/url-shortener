@@ -15,7 +15,7 @@ import (
 func TestAppHandler_URLGetID(t *testing.T) {
 
 	type field struct {
-		logic service.InterfaceAppService
+		logic service.Service
 	}
 
 	type args struct {
@@ -42,10 +42,10 @@ func TestAppHandler_URLGetID(t *testing.T) {
 				r: httptest.NewRequest(http.MethodGet, "http://127.0.0.1:8080/AWcwasd", nil),
 			},
 			field: field{
-				logic: &service.AppService{
-					Storage: &storage.AppStorage{
+				logic: service.Service{
+					Storage: &storage.Storage{
 						M: map[string]string{
-							"http://127.0.0.1:8080/AWcwasd": "http://127.0.0.1:8080/site.com",
+							"AWcwasd": "http://127.0.0.1:8080/site.com",
 						},
 					},
 					Cnf: cnf,
@@ -61,8 +61,8 @@ func TestAppHandler_URLGetID(t *testing.T) {
 				r: httptest.NewRequest(http.MethodGet, "http://127.0.0.1:8080/wadaw", nil),
 			},
 			field: field{
-				logic: &service.AppService{
-					Storage: &storage.AppStorage{
+				logic: service.Service{
+					Storage: &storage.Storage{
 						M: map[string]string{
 							"http://127.0.0.1/sefsfvce": "http://127.0.0.1/site.com",
 						},
@@ -80,8 +80,8 @@ func TestAppHandler_URLGetID(t *testing.T) {
 				r: httptest.NewRequest(http.MethodGet, "http://127.0.0.1:8080/gr43ge34g34t3g345g34g", nil),
 			},
 			field: field{
-				logic: &service.AppService{
-					Storage: &storage.AppStorage{
+				logic: service.Service{
+					Storage: &storage.Storage{
 						M: map[string]string{
 							"http://127.0.0.1:8080/sefsfvce": "http://127.0.0.1:8080/site.com",
 						},
@@ -97,8 +97,8 @@ func TestAppHandler_URLGetID(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			r := mux.NewRouter()
 
-			h := &AppHandler{
-				logic: tt.field.logic,
+			h := &Handler{
+				logic: &tt.field.logic,
 				cnf:   cnf,
 			}
 			r.HandleFunc(`/{id}`, h.URLGetID).Methods(http.MethodGet)
@@ -111,7 +111,7 @@ func TestAppHandler_URLGetID(t *testing.T) {
 func TestAppHandler_URLShortener(t *testing.T) {
 
 	type field struct {
-		logic service.InterfaceAppService
+		logic service.Service
 	}
 
 	type args struct {
@@ -137,8 +137,8 @@ func TestAppHandler_URLShortener(t *testing.T) {
 				r: httptest.NewRequest(http.MethodPost, "http://localhost:8080/", strings.NewReader("https://practicum.yandex.ru/")),
 			},
 			field: field{
-				logic: &service.AppService{
-					Storage: &storage.AppStorage{
+				logic: service.Service{
+					Storage: &storage.Storage{
 						M: map[string]string{},
 					},
 					Cnf: cnf,
@@ -154,8 +154,8 @@ func TestAppHandler_URLShortener(t *testing.T) {
 				r: httptest.NewRequest(http.MethodPost, "http://localhost:8080/", strings.NewReader(" -3040svgbfb-0o-ow4gm'xmfbzdbdbzdb")),
 			},
 			field: field{
-				logic: &service.AppService{
-					Storage: &storage.AppStorage{
+				logic: service.Service{
+					Storage: &storage.Storage{
 						M: map[string]string{},
 					},
 					Cnf: cnf,
@@ -168,8 +168,8 @@ func TestAppHandler_URLShortener(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			r := mux.NewRouter()
 
-			h := &AppHandler{
-				logic: tt.field.logic,
+			h := &Handler{
+				logic: &tt.field.logic,
 				cnf:   cnf,
 			}
 			r.HandleFunc(`/`, h.URLShortener).Methods(http.MethodPost)

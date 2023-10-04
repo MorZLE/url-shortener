@@ -2,44 +2,36 @@ package handler
 
 import (
 	"fmt"
-	"github.com/MorZLE/url-shortener/internal/app/service"
+	"github.com/MorZLE/url-shortener/internal/app/logger"
 	"github.com/MorZLE/url-shortener/internal/config"
+	"github.com/MorZLE/url-shortener/internal/domains"
 	"github.com/gorilla/mux"
 	"io"
 	"log"
 	"net/http"
 )
 
-func NewHandler(lg service.InterfaceAppService, cnf *config.Config) AppHandler {
-	return AppHandler{logic: lg, cnf: *cnf}
+func NewHandler(lg domains.ServiceInterface, cnf *config.Config) Handler {
+	return Handler{logic: lg, cnf: *cnf}
 }
 
-//go:generate go run github.com/vektra/mockery/v2@v2.20.0 --name=InterfaceAppHandler
-type InterfaceAppHandler interface {
-	RunServer()
-	URLShortener(w http.ResponseWriter, r *http.Request)
-	URLGetID(w http.ResponseWriter, r *http.Request)
-}
-
-type AppHandler struct {
-	InterfaceAppHandler
-	logic service.InterfaceAppService
+type Handler struct {
+	logic domains.ServiceInterface
 	cnf   config.Config
 }
 
-func (h *AppHandler) RunServer() {
-
+func (h *Handler) RunServer() {
+	logger.Initialize()
 	router := mux.NewRouter()
-
-	router.HandleFunc(`/`, h.URLShortener).Methods(http.MethodPost)
-	router.HandleFunc(`/{id}`, h.URLGetID).Methods(http.MethodGet)
+	router.Handle(`/`, logger.RequestLogger(h.URLShortener)).Methods(http.MethodPost)
+	router.Handle(`/{id}`, logger.RequestLogger(h.URLGetID)).Methods(http.MethodGet)
 
 	log.Println("Run server ", h.cnf.ServerAddr)
 
 	log.Fatal(http.ListenAndServe(h.cnf.ServerAddr, router))
 }
 
-func (h *AppHandler) URLShortener(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) URLShortener(w http.ResponseWriter, r *http.Request) {
 
 	body, err := io.ReadAll(r.Body)
 
@@ -66,7 +58,6 @@ func (h *AppHandler) URLShortener(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 
 	w.WriteHeader(http.StatusCreated)
-	log.Println("Created short URL:", shortURL)
 
 	_, err = fmt.Fprint(w, shortURL)
 	if err != nil {
@@ -75,12 +66,12 @@ func (h *AppHandler) URLShortener(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (h *AppHandler) URLGetID(w http.ResponseWriter, r *http.Request) {
-	id := mux.Vars(r)["id"]
-	uri := h.cnf.BaseURL + "/" + id
-	log.Println("uriSHORT:", uri)
+func (h *Handler) URLGetID(w http.ResponseWriter, r *http.Request) {
+	//id := mux.Vars(r)["id"]
+	//uri := h.cnf.BaseURL + "/" + id
+	//log.Println("uriSHORT:", uri)
 
-	url, err := h.logic.URLGetID(uri)
+	url, err := h.logic.URLGetID(mux.Vars(r)["id"])
 	if err != nil {
 		log.Println("Error getting URL:", err)
 		http.Error(w, "Error getting URL", http.StatusBadRequest)
