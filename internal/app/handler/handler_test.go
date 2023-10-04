@@ -3,6 +3,7 @@ package handler
 import (
 	"github.com/MorZLE/url-shortener/internal/app/service"
 	"github.com/MorZLE/url-shortener/internal/app/storage"
+	"github.com/MorZLE/url-shortener/internal/config"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -12,7 +13,6 @@ import (
 )
 
 func TestAppHandler_URLGetID(t *testing.T) {
-	//type mockFn func(r *mocks.InterfaceAppService)
 
 	type field struct {
 		logic service.InterfaceAppService
@@ -23,6 +23,10 @@ func TestAppHandler_URLGetID(t *testing.T) {
 		r *http.Request
 
 		//	m mockFn
+	}
+	cnf := config.Config{
+		FlagAddrShortener: "http://127.0.0.1:8080",
+		FlagAddrReq:       "http://127.0.0.1:8080",
 	}
 	tests := []struct {
 		name       string
@@ -35,15 +39,16 @@ func TestAppHandler_URLGetID(t *testing.T) {
 
 			args: args{
 				w: &httptest.ResponseRecorder{},
-				r: httptest.NewRequest(http.MethodGet, "http://localhost:8080/AWcwasd", nil),
+				r: httptest.NewRequest(http.MethodGet, "http://127.0.0.1:8080/AWcwasd", nil),
 			},
 			field: field{
 				logic: &service.AppService{
 					Storage: &storage.AppStorage{
 						M: map[string]string{
-							"http://localhost:8080/AWcwasd": "http://localhost:8080/site.com",
+							"http://127.0.0.1:8080/AWcwasd": "http://127.0.0.1:8080/site.com",
 						},
 					},
+					Cnf: cnf,
 				},
 			},
 			wantStatus: http.StatusTemporaryRedirect,
@@ -53,15 +58,16 @@ func TestAppHandler_URLGetID(t *testing.T) {
 
 			args: args{
 				w: &httptest.ResponseRecorder{},
-				r: httptest.NewRequest(http.MethodGet, "http://localhost:8080/wadaw", nil),
+				r: httptest.NewRequest(http.MethodGet, "http://127.0.0.1:8080/wadaw", nil),
 			},
 			field: field{
 				logic: &service.AppService{
 					Storage: &storage.AppStorage{
 						M: map[string]string{
-							"http://localhost:8080/sefsfvce": "http://localhost:8080/site.com",
+							"http://127.0.0.1/sefsfvce": "http://127.0.0.1/site.com",
 						},
 					},
+					Cnf: cnf,
 				},
 			},
 			wantStatus: http.StatusBadRequest,
@@ -71,15 +77,16 @@ func TestAppHandler_URLGetID(t *testing.T) {
 
 			args: args{
 				w: &httptest.ResponseRecorder{},
-				r: httptest.NewRequest(http.MethodGet, "http://localhost:8080/gr43ge34g34t3g345g34g", nil),
+				r: httptest.NewRequest(http.MethodGet, "http://127.0.0.1:8080/gr43ge34g34t3g345g34g", nil),
 			},
 			field: field{
 				logic: &service.AppService{
 					Storage: &storage.AppStorage{
 						M: map[string]string{
-							"http://localhost:8080/sefsfvce": "http://localhost:8080/site.com",
+							"http://127.0.0.1:8080/sefsfvce": "http://127.0.0.1:8080/site.com",
 						},
 					},
+					Cnf: cnf,
 				},
 			},
 			wantStatus: http.StatusBadRequest,
@@ -92,6 +99,7 @@ func TestAppHandler_URLGetID(t *testing.T) {
 
 			h := &AppHandler{
 				logic: tt.field.logic,
+				cnf:   cnf,
 			}
 			r.HandleFunc(`/{id}`, h.URLGetID).Methods(http.MethodGet)
 			r.ServeHTTP(tt.args.w, tt.args.r)
@@ -110,6 +118,11 @@ func TestAppHandler_URLShortener(t *testing.T) {
 		w *httptest.ResponseRecorder
 		r *http.Request
 	}
+	cnf := config.Config{
+		FlagAddrShortener: "http://127.0.0.1:8080",
+		FlagAddrReq:       "http://127.0.0.1:8080",
+	}
+
 	tests := []struct {
 		name       string
 		args       args
@@ -128,6 +141,7 @@ func TestAppHandler_URLShortener(t *testing.T) {
 					Storage: &storage.AppStorage{
 						M: map[string]string{},
 					},
+					Cnf: cnf,
 				},
 			},
 			wantStatus: http.StatusCreated,
@@ -144,6 +158,7 @@ func TestAppHandler_URLShortener(t *testing.T) {
 					Storage: &storage.AppStorage{
 						M: map[string]string{},
 					},
+					Cnf: cnf,
 				},
 			},
 			wantStatus: http.StatusCreated,
@@ -155,6 +170,7 @@ func TestAppHandler_URLShortener(t *testing.T) {
 
 			h := &AppHandler{
 				logic: tt.field.logic,
+				cnf:   cnf,
 			}
 			r.HandleFunc(`/`, h.URLShortener).Methods(http.MethodPost)
 			r.ServeHTTP(tt.args.w, tt.args.r)

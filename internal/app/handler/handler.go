@@ -3,14 +3,15 @@ package handler
 import (
 	"fmt"
 	"github.com/MorZLE/url-shortener/internal/app/service"
+	"github.com/MorZLE/url-shortener/internal/config"
 	"github.com/gorilla/mux"
 	"io"
 	"log"
 	"net/http"
 )
 
-func NewHandler(lg service.InterfaceAppService) AppHandler {
-	return AppHandler{logic: lg}
+func NewHandler(lg service.InterfaceAppService, cnf *config.Config) AppHandler {
+	return AppHandler{logic: lg, cnf: *cnf}
 }
 
 //go:generate go run github.com/vektra/mockery/v2@v2.20.0 --name=InterfaceAppHandler
@@ -23,6 +24,7 @@ type InterfaceAppHandler interface {
 type AppHandler struct {
 	InterfaceAppHandler
 	logic service.InterfaceAppService
+	cnf   config.Config
 }
 
 func (h *AppHandler) RunServer() {
@@ -32,8 +34,9 @@ func (h *AppHandler) RunServer() {
 	router.HandleFunc(`/`, h.URLShortener).Methods(http.MethodPost)
 	router.HandleFunc(`/{id}`, h.URLGetID).Methods(http.MethodGet)
 
-	log.Println("Listening on port 8080")
-	log.Fatal(http.ListenAndServe(":8080", router))
+	log.Println("Run server ", h.cnf.FlagAddrReq)
+
+	log.Fatal(http.ListenAndServe(h.cnf.FlagAddrReq, router))
 }
 
 func (h *AppHandler) URLShortener(w http.ResponseWriter, r *http.Request) {
@@ -74,8 +77,8 @@ func (h *AppHandler) URLShortener(w http.ResponseWriter, r *http.Request) {
 
 func (h *AppHandler) URLGetID(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
-	uri := fmt.Sprintf("http://localhost:8080/%s", id)
-	log.Println("uri:", uri)
+	uri := h.cnf.FlagAddrShortener + "/" + id
+	log.Println("uriSHORT:", uri)
 
 	url, err := h.logic.URLGetID(uri)
 	if err != nil {
