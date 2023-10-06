@@ -3,6 +3,7 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/MorZLE/url-shortener/internal/app/gzip"
 	"github.com/MorZLE/url-shortener/internal/app/logger"
@@ -44,18 +45,20 @@ func (h *Handler) JSONURLShort(w http.ResponseWriter, r *http.Request) {
 	_, err := buf.ReadFrom(r.Body)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		logger.Error("Ошибка чтения body запроса", err)
 		return
 	}
 
 	if err = json.Unmarshal(buf.Bytes(), &url); err != nil {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-		log.Println("Ошибка чтения JSON запроса:", err)
+		logger.Error("Ошибка чтения JSON запроса", err)
 		return
 	}
 
 	longURL := url.URL
 	if longURL == "" {
 		http.Error(w, "Error reading request body", http.StatusBadRequest)
+		logger.Error("Пустое поле URL в JSON", errors.New("zero value URL in JSON"))
 		return
 	}
 	shortURL, err := h.logic.URLShorter(longURL)

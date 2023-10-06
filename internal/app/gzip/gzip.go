@@ -3,6 +3,7 @@ package gzip
 import (
 	"compress/gzip"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -100,6 +101,7 @@ func GzipMiddleware(h http.HandlerFunc) http.HandlerFunc {
 				return
 			}
 			// меняем тело запроса на новое
+			log.Println("Декомпрессирован тело запроса")
 			r.Body = cr
 			defer cr.Close()
 		}

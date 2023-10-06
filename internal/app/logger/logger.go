@@ -75,6 +75,9 @@ func RequestLogger(h http.HandlerFunc) http.Handler {
 		)
 	})
 }
+func Error(info string, err error) {
+	Log.Info(info, zap.Error(err))
+}
 
 func ShortURL(url string) {
 	Log.Info("CreateShortURL", zap.String("url", url))
