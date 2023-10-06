@@ -2,6 +2,7 @@ package gzip
 
 import (
 	"compress/gzip"
+	"github.com/MorZLE/url-shortener/internal/app/logger"
 	"io"
 	"log"
 	"net/http"
@@ -101,9 +102,14 @@ func GzipMiddleware(h http.HandlerFunc) http.HandlerFunc {
 				return
 			}
 			// меняем тело запроса на новое
-			log.Println("Декомпрессирован тело запроса")
+			log.Println("Декомпрессировано тело запроса")
 			r.Body = cr
-			defer cr.Close()
+			defer func(cr *compressReader) {
+				err := cr.Close()
+				if err != nil {
+					logger.Error("Не удалось закрыть тело запроса", err)
+				}
+			}(cr)
 		}
 		if !sendsGzip {
 			log.Println("Не сжатое тело запроса")

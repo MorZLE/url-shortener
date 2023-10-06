@@ -28,7 +28,7 @@ func Initialize() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// устанавливаем синглтон3452к
+	// устанавливаем синглтон
 	Log = zl
 }
 
