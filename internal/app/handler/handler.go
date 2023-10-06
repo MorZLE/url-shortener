@@ -27,8 +27,8 @@ func (h *Handler) RunServer() {
 	logger.Initialize()
 	router := mux.NewRouter()
 	router.Handle(`/`, logger.RequestLogger(h.URLShortener)).Methods(http.MethodPost)
-	router.Handle(`/api/shorten,`, logger.RequestLogger(h.JSONURLShort)).Methods(http.MethodPost)
-	router.Handle(`/api/shorten,`, logger.RequestLogger(h.JSONURLGetID)).Methods(http.MethodGet)
+	router.Handle(`/api/shorten`, logger.RequestLogger(h.JSONURLShort)).Methods(http.MethodPost)
+	router.Handle(`/api/shorten`, logger.RequestLogger(h.JSONURLGetID)).Methods(http.MethodGet)
 	router.Handle(`/{id}`, logger.RequestLogger(h.URLGetID)).Methods(http.MethodGet)
 
 	log.Println("Run server ", h.cnf.ServerAddr)
