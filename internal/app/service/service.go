@@ -18,8 +18,8 @@ func NewService(s domains.StorageInterface, cnf *config.Config) Service {
 type Service struct {
 	Storage domains.StorageInterface
 	Cnf     config.Config
-  
 }
+
 func (s *Service) URLShorter(url string) (string, error) {
 	hd := hashids.NewData()
 	hd.MinLength = 6

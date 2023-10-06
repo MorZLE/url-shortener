@@ -1,9 +1,12 @@
 package handler
 
 import (
+	"bytes"
+	"encoding/json"
 	"github.com/MorZLE/url-shortener/internal/app/service"
 	"github.com/MorZLE/url-shortener/internal/app/storage"
 	"github.com/MorZLE/url-shortener/internal/config"
+	"github.com/MorZLE/url-shortener/internal/constjson"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -173,6 +176,94 @@ func TestAppHandler_URLShortener(t *testing.T) {
 				cnf:   cnf,
 			}
 			r.HandleFunc(`/`, h.URLShortener).Methods(http.MethodPost)
+			r.ServeHTTP(tt.args.w, tt.args.r)
+			assert.Equal(t, tt.args.w.Code, tt.wantStatus)
+		})
+	}
+}
+
+func TestHandler_JSONURLShort(t *testing.T) {
+	type fields struct {
+		logic service.Service
+	}
+
+	type args struct {
+		w *httptest.ResponseRecorder
+		r *http.Request
+	}
+	cnf := config.Config{
+		BaseURL:    "http://127.0.0.1:8080",
+		ServerAddr: "http://127.0.0.1:8080",
+	}
+	t1, _ := json.Marshal(&constjson.URLLong{URL: "https://practicum.yandex.ru/"})
+	t2, _ := json.Marshal(&constjson.URLLong{URL: "https://vk.com/"})
+	t3, _ := json.Marshal(&constjson.URLShort{Result: "https://vk.com/"})
+
+	tests := []struct {
+		name       string
+		fields     fields
+		args       args
+		wantStatus int
+	}{
+		{
+			name: "Test case 1",
+			args: args{
+				w: httptest.NewRecorder(),
+				r: httptest.NewRequest(http.MethodPost, "http://localhost:8080/api/shorten", bytes.NewBuffer(t1)),
+			},
+			fields: fields{
+				logic: service.Service{
+					Storage: &storage.Storage{
+						M: map[string]string{},
+					},
+					Cnf: cnf,
+				},
+			},
+			wantStatus: http.StatusCreated,
+		},
+		{
+			name: "Test case 2",
+			args: args{
+				w: httptest.NewRecorder(),
+				r: httptest.NewRequest(http.MethodPost, "http://localhost:8080/api/shorten", bytes.NewBuffer(t2)),
+			},
+			fields: fields{
+				logic: service.Service{
+					Storage: &storage.Storage{
+						M: map[string]string{},
+					},
+					Cnf: cnf,
+				},
+			},
+			wantStatus: http.StatusCreated,
+		},
+		{
+			name: "Test case 3",
+			args: args{
+				w: httptest.NewRecorder(),
+				r: httptest.NewRequest(http.MethodPost, "http://localhost:8080/api/shorten", bytes.NewBuffer(t3)),
+			},
+			fields: fields{
+				logic: service.Service{
+					Storage: &storage.Storage{
+						M: map[string]string{},
+					},
+					Cnf: cnf,
+				},
+			},
+			wantStatus: http.StatusBadRequest,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := mux.NewRouter()
+			h := &Handler{
+				logic: &tt.fields.logic,
+				cnf:   cnf,
+			}
+			r.HandleFunc(`/api/shorten`, h.JSONURLShort).Methods(http.MethodPost)
+
+			tt.args.w.Header().Set("Content-Type", "application/json")
 			r.ServeHTTP(tt.args.w, tt.args.r)
 			assert.Equal(t, tt.args.w.Code, tt.wantStatus)
 		})
