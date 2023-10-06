@@ -105,6 +105,9 @@ func GzipMiddleware(h http.HandlerFunc) http.HandlerFunc {
 			r.Body = cr
 			defer cr.Close()
 		}
+		if !sendsGzip {
+			log.Println("Не сжатое тело запроса")
+		}
 
 		// передаём управление хендлеру
 		h.ServeHTTP(ow, r)
