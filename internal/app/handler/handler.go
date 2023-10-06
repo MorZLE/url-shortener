@@ -53,6 +53,10 @@ func (h *Handler) JSONURLShort(w http.ResponseWriter, r *http.Request) {
 	}
 
 	longURL := url.URL
+	if longURL == "" {
+		http.Error(w, "Error reading request body", http.StatusBadRequest)
+		return
+	}
 	shortURL, err := h.logic.URLShorter(longURL)
 	if err != nil {
 		http.Error(w, "Error shorting URL", http.StatusBadRequest)
