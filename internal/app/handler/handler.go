@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/MorZLE/url-shortener/internal/app/gzip"
 	"github.com/MorZLE/url-shortener/internal/app/logger"
 	"github.com/MorZLE/url-shortener/internal/config"
 	"github.com/MorZLE/url-shortener/internal/constjson"
@@ -26,10 +27,10 @@ type Handler struct {
 func (h *Handler) RunServer() {
 	logger.Initialize()
 	router := mux.NewRouter()
-	router.Handle(`/`, logger.RequestLogger(h.URLShortener)).Methods(http.MethodPost)
-	router.Handle(`/api/shorten`, logger.RequestLogger(h.JSONURLShort)).Methods(http.MethodPost)
-	router.Handle(`/api/shorten`, logger.RequestLogger(h.JSONURLGetID)).Methods(http.MethodGet)
-	router.Handle(`/{id}`, logger.RequestLogger(h.URLGetID)).Methods(http.MethodGet)
+	router.Handle(`/`, logger.RequestLogger(gzip.GzipMiddleware(h.URLShortener))).Methods(http.MethodPost)
+	router.Handle(`/api/shorten`, logger.RequestLogger(gzip.GzipMiddleware(h.JSONURLShort))).Methods(http.MethodPost)
+	router.Handle(`/api/shorten`, logger.RequestLogger(gzip.GzipMiddleware(h.JSONURLGetID))).Methods(http.MethodGet)
+	router.Handle(`/{id}`, logger.RequestLogger(gzip.GzipMiddleware(h.URLGetID))).Methods(http.MethodGet)
 
 	log.Println("Run server ", h.cnf.ServerAddr)
 
