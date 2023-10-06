@@ -71,7 +71,7 @@ func (h *Handler) ResponseValueJSON(res http.ResponseWriter, obj constjson.URLSh
 
 	res.Header().Set("Content-Type", "application/json")
 
-	res.WriteHeader(http.StatusOK)
+	res.WriteHeader(http.StatusCreated)
 
 	_, err = res.Write(resp)
 	if err != nil {
