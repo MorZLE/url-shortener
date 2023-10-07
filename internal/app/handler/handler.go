@@ -31,7 +31,7 @@ func (h *Handler) RunServer() {
 	router.Handle(`/`, logger.RequestLogger(gzip.GzipMiddleware(h.URLShortener))).Methods(http.MethodPost)
 	router.Handle(`/api/shorten`, logger.RequestLogger(gzip.GzipMiddleware(h.JSONURLShort))).Methods(http.MethodPost)
 	//	router.Handle(`/api/shorten`, logger.RequestLogger(gzip.GzipMiddleware(h.JSONURLGetID))).Methods(http.MethodGet)
-	router.Handle(`/{id}`, logger.RequestLogger(gzip.GzipMiddleware(h.URLGetID))).Methods(http.MethodGet)
+	router.Handle(`/{id}`, logger.RequestLogger(h.URLGetID)).Methods(http.MethodGet)
 
 	log.Println("Run server ", h.cnf.ServerAddr)
 
@@ -46,6 +46,7 @@ func (h *Handler) JSONURLShort(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		logger.Error("Ошибка чтения body запроса", err)
+		log.Println("Error reading request body", err)
 		return
 	}
 
