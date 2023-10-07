@@ -112,7 +112,7 @@ func GzipMiddleware(h http.HandlerFunc) http.HandlerFunc {
 			}(cr)
 		}
 		if !sendsGzip {
-			log.Println("Не сжатое тело запроса", r.Body)
+			log.Println("Не сжатое тело запроса")
 		}
 
 		// передаём управление хендлеру

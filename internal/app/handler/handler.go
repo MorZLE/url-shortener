@@ -44,22 +44,22 @@ func (h *Handler) JSONURLShort(w http.ResponseWriter, r *http.Request) {
 
 	_, err := buf.ReadFrom(r.Body)
 	if err != nil {
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-		logger.Error("Ошибка чтения body запроса", err)
+		logger.Error("ошибка чтения body запроса", err)
 		log.Println("Error reading request body", err)
+		http.Error(w, "ошибка чтения body запроса", http.StatusBadRequest)
 		return
 	}
 
 	if err = json.Unmarshal(buf.Bytes(), &url); err != nil {
-		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		logger.Error("Ошибка чтения JSON запроса", err)
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
 	}
 
 	longURL := url.URL
 	if longURL == "" {
-		http.Error(w, "Error reading request body", http.StatusBadRequest)
 		logger.Error("Пустое поле URL в JSON", errors.New("zero value URL in JSON"))
+		http.Error(w, "Error reading request body", http.StatusBadRequest)
 		return
 	}
 	shortURL, err := h.logic.URLShorter(longURL)
