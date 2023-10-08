@@ -257,6 +257,7 @@ func TestHandler_JSONURLShort(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r := mux.NewRouter()
+
 			h := &Handler{
 				logic: &tt.fields.logic,
 				cnf:   cnf,
@@ -269,3 +270,99 @@ func TestHandler_JSONURLShort(t *testing.T) {
 		})
 	}
 }
+
+//func TestHandler_JSONURLShortGzip(t *testing.T) {
+//
+//	type mckL func(r *mocks.ServiceInterface)
+//	type mckS func(r *mocks.StorageInterface)
+//
+//	type fields struct {
+//		mckL mckL
+//		mckS mckS
+//		Cnf  config.Config
+//	}
+//
+//	type args struct {
+//		w *httptest.ResponseRecorder
+//		r *http.Request
+//	}
+//
+//	cnf := config.Config{
+//		BaseURL:    "http://127.0.0.1:8080",
+//		ServerAddr: "http://127.0.0.1:8080",
+//	}
+//
+//	var buf bytes.Buffer
+//	t1, _ := json.Marshal(&constjson.URLLong{URL: "https://practicum.yandex.ru/"})
+//	gz := gzip.NewWriter(&buf)
+//	_, _ = gz.Write(t1)
+//	_ = gz.Close()
+//
+//	w1 := cnf.BaseURL + "/qwd3212d"
+//
+//	tests := []struct {
+//		name         string
+//		fields       fields
+//		args         args
+//		wantStatus   int
+//		wantShortURL string
+//	}{
+//		{
+//			name: "Test case 1",
+//			args: args{
+//				w: httptest.NewRecorder(),
+//				r: httptest.NewRequest(http.MethodPost, "http://localhost:8080/api/shorten", bytes.NewBuffer(t1)),
+//			},
+//			fields: fields{
+//				mckL: func(r *mocks.ServiceInterface) {
+//					r.On("URLShorter", "https://practicum.yandex.ru/").Return(w1, nil)
+//				},
+//				mckS: func(r *mocks.StorageInterface) {
+//					r.On("Set", "/qwd3212d").Return(nil)
+//				},
+//				Cnf: cnf,
+//			},
+//			wantStatus:   http.StatusCreated,
+//			wantShortURL: w1,
+//		},
+//	}
+//
+//	for _, tt := range tests {
+//		t.Run(tt.name, func(t *testing.T) {
+//
+//			r := mux.NewRouter()
+//			m := mocks.NewServiceInterface(t)
+//			tt.fields.mckL(m)
+//
+//			h := &Handler{
+//				logic: m,
+//				cnf:   cnf,
+//			}
+//
+//			tt.args.r.Header.Set("Content-Encoding", "gzip")
+//			tt.args.r.Header.Set("Accept-Encoding", "application/json")
+//
+//			r.HandleFunc(`/api/shorten`, awd.GzipMiddleware(h.JSONURLShort)).Methods(http.MethodPost)
+//			r.ServeHTTP(tt.args.w, tt.args.r)
+//
+//			body, err := io.ReadAll(tt.args.w.Body)
+//			if err != nil {
+//				log.Fatal(err)
+//			}
+//
+//			reader, err := gzip.NewReader(bytes.NewReader(body))
+//			if err != nil {
+//				log.Fatal(err)
+//			}
+//
+//			decompressedData, err := io.ReadAll(reader)
+//			if err != nil {
+//				log.Fatal(err)
+//			}
+//
+//			reader.Close()
+//			assert.Equal(t, decompressedData, tt.wantShortURL)
+//			assert.Equal(t, tt.args.w.Code, tt.wantStatus)
+//		})
+//	}
+//}

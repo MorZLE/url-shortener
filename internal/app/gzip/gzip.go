@@ -85,6 +85,7 @@ func GzipMiddleware(h http.HandlerFunc) http.HandlerFunc {
 		if supportsGzip {
 			// оборачиваем оригинальный http.ResponseWriter новым с поддержкой сжатия
 			cw := newCompressWriter(w)
+			cw.Header().Set("Content-Encoding", "gzip")
 			// меняем оригинальный http.ResponseWriter на новый
 			ow = cw
 			// не забываем отправить клиенту все сжатые данные после завершения middleware
