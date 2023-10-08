@@ -30,7 +30,6 @@ func (h *Handler) RunServer() {
 	router := mux.NewRouter()
 	router.Handle(`/`, logger.RequestLogger(gzip.GzipMiddleware(h.URLShortener))).Methods(http.MethodPost)
 	router.Handle(`/api/shorten`, logger.RequestLogger(gzip.GzipMiddleware(h.JSONURLShort))).Methods(http.MethodPost)
-	//	router.Handle(`/api/shorten`, logger.RequestLogger(gzip.GzipMiddleware(h.JSONURLGetID))).Methods(http.MethodGet)
 	router.Handle(`/{id}`, logger.RequestLogger(h.URLGetID)).Methods(http.MethodGet)
 
 	log.Println("Run server ", h.cnf.ServerAddr)
@@ -138,30 +137,3 @@ func (h *Handler) URLGetID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Location", url)
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }
-
-//
-//func (h *Handler) JSONURLGetID(w http.ResponseWriter, r *http.Request) {
-//
-//	var url constjson.URLLong
-//	var buf bytes.Buffer
-//
-//	_, err := buf.ReadFrom(r.Body)
-//	if err != nil {
-//		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-//		return
-//	}
-//
-//	if err = json.Unmarshal(buf.Bytes(), &url); err != nil {
-//		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-//		return
-//	}
-//
-//	longURL := url.URL
-//	shortURL, err := h.logic.URLGetID(longURL[len(longURL)-8:])
-//	if err != nil {
-//		http.Error(w, "Error shorting URL", http.StatusBadRequest)
-//		return
-//	}
-//	w.Header().Set("Location", shortURL)
-//	w.WriteHeader(http.StatusTemporaryRedirect)
-//}
