@@ -2,10 +2,10 @@ package handler
 
 import (
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/MorZLE/url-shortener/internal/app/gzip"
 	"github.com/MorZLE/url-shortener/internal/app/logger"
 	"github.com/MorZLE/url-shortener/internal/config"
 	"github.com/MorZLE/url-shortener/internal/constjson"
@@ -14,6 +14,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 )
 
 func NewHandler(lg domains.ServiceInterface, cnf *config.Config) Handler {
@@ -28,7 +29,7 @@ type Handler struct {
 func (h *Handler) RunServer() {
 	logger.Initialize()
 	router := mux.NewRouter()
-	router.Use(gzip.GzipMiddleware)
+	//router.Use(gzip.GzipMiddleware)
 	router.Handle(`/`, logger.RequestLogger(h.URLShortener)).Methods(http.MethodPost)
 	router.Handle(`/api/shorten`, logger.RequestLogger(h.JSONURLShort)).Methods(http.MethodPost)
 	router.Handle(`/{id}`, logger.RequestLogger(h.URLGetID)).Methods(http.MethodGet)
@@ -42,14 +43,31 @@ func (h *Handler) JSONURLShort(w http.ResponseWriter, r *http.Request) {
 	var url constjson.URLLong
 	var buf bytes.Buffer
 
-	_, err := buf.ReadFrom(r.Body)
-	if err != nil {
-		logger.Error("ошибка чтения body запроса", err)
-		http.Error(w, "ошибка чтения body запроса", http.StatusBadRequest)
-		return
+	if strings.Contains(r.Header.Get("Content-Encoding"), "gzip") {
+		gzipReader, err := gzip.NewReader(r.Body)
+		if err != nil {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		defer gzipReader.Close()
+
+		_, err = buf.ReadFrom(gzipReader)
+		if err != nil {
+			logger.Error("ошибка чтения body запроса", err)
+			http.Error(w, "ошибка чтения body запроса", http.StatusBadRequest)
+			return
+		}
+	} else {
+
+		_, err := buf.ReadFrom(r.Body)
+		if err != nil {
+			logger.Error("ошибка чтения body запроса", err)
+			http.Error(w, "ошибка чтения body запроса", http.StatusBadRequest)
+			return
+		}
 	}
 
-	if err = json.Unmarshal(buf.Bytes(), &url); err != nil {
+	if err := json.Unmarshal(buf.Bytes(), &url); err != nil {
 		logger.Error("Ошибка чтения JSON запроса", err)
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
@@ -61,32 +79,57 @@ func (h *Handler) JSONURLShort(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error reading request body", http.StatusBadRequest)
 		return
 	}
+
 	shortURL, err := h.logic.URLShorter(longURL)
 	if err != nil {
 		http.Error(w, "Error shorting URL", http.StatusBadRequest)
 		return
 	}
-	h.ResponseValueJSON(w, constjson.URLShort{Result: shortURL})
 
-}
-func (h *Handler) ResponseValueJSON(res http.ResponseWriter, obj constjson.URLShort) {
-	resp, err := json.Marshal(&obj)
+	resp, err := json.Marshal(&shortURL)
 	if err != nil {
-		http.Error(res, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		log.Println("Ошибка создания JSON ответа:", err)
 		return
 	}
 
-	res.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
 
-	res.WriteHeader(http.StatusCreated)
+	if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+		compressedWriter := gzip.NewWriter(w)
+		defer compressedWriter.Close()
 
-	_, err = res.Write(resp)
-	if err != nil {
-		return
+		_, err = compressedWriter.Write(resp)
+		if err != nil {
+			return
+		}
+
+	} else {
+		_, err = w.Write(resp)
+		if err != nil {
+			return
+		}
 	}
-
 }
+
+//func (h *Handler) ResponseValueJSON(res http.ResponseWriter, obj constjson.URLShort) {
+//	resp, err := json.Marshal(&obj)
+//	if err != nil {
+//		http.Error(res, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+//		log.Println("Ошибка создания JSON ответа:", err)
+//		return
+//	}
+//
+//	res.Header().Set("Content-Type", "application/json")
+//	res.WriteHeader(http.StatusCreated)
+//
+//	_, err = res.Write(compressedWriter)
+//	if err != nil {
+//		return
+//	}
+//
+//}
 
 func (h *Handler) URLShortener(w http.ResponseWriter, r *http.Request) {
 
