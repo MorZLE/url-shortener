@@ -45,7 +45,6 @@ func (h *Handler) JSONURLShort(w http.ResponseWriter, r *http.Request) {
 	_, err := buf.ReadFrom(r.Body)
 	if err != nil {
 		logger.Error("ошибка чтения body запроса", err)
-		log.Println("Error reading request body", err)
 		http.Error(w, "ошибка чтения body запроса", http.StatusBadRequest)
 		return
 	}
