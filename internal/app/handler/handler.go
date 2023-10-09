@@ -28,9 +28,9 @@ type Handler struct {
 func (h *Handler) RunServer() {
 	logger.Initialize()
 	router := mux.NewRouter()
-	router.Handle(`/`, logger.RequestLogger(gzip.GzipMiddleware(h.URLShortener))).Methods(http.MethodPost)
-	router.Handle(`/api/shorten`, logger.RequestLogger(gzip.GzipMiddleware(h.JSONURLShort))).Methods(http.MethodPost)
-	//	router.Handle(`/api/shorten`, logger.RequestLogger(gzip.GzipMiddleware(h.JSONURLGetID))).Methods(http.MethodGet)
+	router.Use(gzip.GzipMiddleware)
+	router.Handle(`/`, logger.RequestLogger(h.URLShortener)).Methods(http.MethodPost)
+	router.Handle(`/api/shorten`, logger.RequestLogger(h.JSONURLShort)).Methods(http.MethodPost)
 	router.Handle(`/{id}`, logger.RequestLogger(h.URLGetID)).Methods(http.MethodGet)
 
 	log.Println("Run server ", h.cnf.ServerAddr)
