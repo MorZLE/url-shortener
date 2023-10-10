@@ -3,14 +3,12 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
-	"fmt"
-	"github.com/MorZLE/url-shortener/internal/app/gzip"
 	"github.com/MorZLE/url-shortener/internal/app/logger"
 	"github.com/MorZLE/url-shortener/internal/config"
 	"github.com/MorZLE/url-shortener/internal/constjson"
 	"github.com/MorZLE/url-shortener/internal/domains"
-	"github.com/gorilla/mux"
+	"github.com/gin-contrib/gzip"
+	"github.com/gin-gonic/gin"
 	"io"
 	"log"
 	"net/http"
@@ -27,115 +25,124 @@ type Handler struct {
 
 func (h *Handler) RunServer() {
 	logger.Initialize()
-	router := mux.NewRouter()
-	router.Use(gzip.GzipMiddleware)
-	router.Handle(`/`, logger.RequestLogger(h.URLShortener)).Methods(http.MethodPost)
-	router.Handle(`/api/shorten`, logger.RequestLogger(h.JSONURLShort)).Methods(http.MethodPost)
-	router.Handle(`/{id}`, logger.RequestLogger(h.URLGetID)).Methods(http.MethodGet)
+
+	router := gin.Default()
+	router.Use(gzip.Gzip(gzip.BestSpeed))
+	router.Use(gin.Logger())
+
+	router.POST(`/`, h.URLShortener)
+	router.POST(`/api/shorten`, h.JSONURLShort)
+	router.GET(`/:id`, h.URLGetID)
+
+	log.Fatal(router.Run(h.cnf.ServerAddr))
 
 	log.Println("Run server ", h.cnf.ServerAddr)
-
-	log.Fatal(http.ListenAndServe(h.cnf.ServerAddr, router))
 }
 
-func (h *Handler) JSONURLShort(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) JSONURLShort(c *gin.Context) {
 	var url constjson.URLLong
 	var buf bytes.Buffer
 
-	_, err := buf.ReadFrom(r.Body)
+	//_, err := buf.ReadFrom(c.Request.Body)
+	//if err != nil {
+	//	c.Error(err)
+	//	c.AbortWithStatus(http.StatusInternalServerError)
+	//
+	//	return
+	//}
+
+	b, err := UseGzip(c.Request.Body, c.Request.Header.Get("Content-Type"))
 	if err != nil {
-		logger.Error("ошибка чтения body запроса", err)
-		http.Error(w, "ошибка чтения body запроса", http.StatusBadRequest)
+		c.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+
 		return
 	}
 
-	if err := json.Unmarshal(buf.Bytes(), &url); err != nil {
-		logger.Error("Ошибка чтения JSON запроса", err)
-		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+	if err := json.Unmarshal(b, &url); err != nil {
+		c.Error(err)
+		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
 
 	longURL := url.URL
 	if longURL == "" {
-		logger.Error("Пустое поле URL в JSON", errors.New("zero value URL in JSON"))
-		http.Error(w, "Error reading request body", http.StatusBadRequest)
+		c.Error(err)
+		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 	shortURL, err := h.logic.URLShorter(longURL)
 	if err != nil {
-		http.Error(w, "Error shorting URL", http.StatusBadRequest)
+		c.Error(err)
+		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
-	h.ResponseValueJSON(w, constjson.URLShort{Result: shortURL})
+	h.ResponseValueJSON(c, constjson.URLShort{Result: shortURL})
 
 }
-func (h *Handler) ResponseValueJSON(res http.ResponseWriter, obj constjson.URLShort) {
+func (h *Handler) ResponseValueJSON(c *gin.Context, obj constjson.URLShort) {
 	resp, err := json.Marshal(&obj)
 	if err != nil {
-		http.Error(res, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-		log.Println("Ошибка создания JSON ответа:", err)
+		c.Error(err)
+		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
 
-	res.Header().Set("Content-Type", "application/json")
+	c.Header("Content-Type", "application/json")
+	c.Status(http.StatusCreated)
 
-	res.WriteHeader(http.StatusCreated)
-
-	_, err = res.Write(resp)
-	if err != nil {
-		return
-	}
+	c.Writer.Write(resp)
 
 }
 
-func (h *Handler) URLShortener(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) URLShortener(c *gin.Context) {
 
-	body, err := io.ReadAll(r.Body)
+	body, err := io.ReadAll(c.Request.Body)
 
 	log.Println("Получен url:", string(body))
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			log.Fatal(err)
+			c.Error(err)
+			c.AbortWithStatus(http.StatusBadRequest)
 		}
-	}(r.Body)
+	}(c.Request.Body)
 
 	if err != nil {
-		http.Error(w, "Error reading request body", http.StatusBadRequest)
+		c.Error(err)
+		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
 	shortURL, err := h.logic.URLShorter(string(body))
 
 	if err != nil {
-		http.Error(w, "Error shorting URL", http.StatusBadRequest)
+		c.Error(err)
+		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
-	w.Header().Set("Content-Type", "text/plain")
+	c.Header("Content-Type", "text/plain")
 
-	w.WriteHeader(http.StatusCreated)
+	c.Status(http.StatusCreated)
 
-	_, err = fmt.Fprint(w, shortURL)
-	if err != nil {
-		return
-	}
+	c.Writer.WriteString(shortURL)
 
 }
 
-func (h *Handler) URLGetID(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) URLGetID(c *gin.Context) {
 
-	url, err := h.logic.URLGetID(mux.Vars(r)["id"])
+	url, err := h.logic.URLGetID(c.Param("id"))
 	if err != nil {
-		log.Println("Error getting URL:", err)
-		http.Error(w, "Error getting URL", http.StatusBadRequest)
+		c.Error(err)
+		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
 	log.Println("отправлен url:", url)
 
-	w.Header().Set("Location", url)
-	w.WriteHeader(http.StatusTemporaryRedirect)
+	c.Header("Location", url)
+	c.Status(http.StatusTemporaryRedirect)
 }
 
 //
