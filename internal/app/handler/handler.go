@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"bytes"
 	"encoding/json"
 	"github.com/MorZLE/url-shortener/internal/app/logger"
 	"github.com/MorZLE/url-shortener/internal/config"
@@ -41,7 +40,7 @@ func (h *Handler) RunServer() {
 
 func (h *Handler) JSONURLShort(c *gin.Context) {
 	var url constjson.URLLong
-	var buf bytes.Buffer
+	//var buf bytes.Buffer
 
 	//_, err := buf.ReadFrom(c.Request.Body)
 	//if err != nil {

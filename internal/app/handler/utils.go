@@ -13,6 +13,7 @@ func UseGzip(body io.Reader, contentType string) (data []byte, err error) {
 		if err != nil {
 			return nil, err
 		}
+
 	} else {
 		data, err = io.ReadAll(body)
 		if err != nil {

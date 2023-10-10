@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
-	awd "github.com/MorZLE/url-shortener/internal/app/gzip"
 	"github.com/MorZLE/url-shortener/internal/app/service"
 	"github.com/MorZLE/url-shortener/internal/app/storage"
 	"github.com/MorZLE/url-shortener/internal/config"
@@ -349,7 +348,7 @@ func TestHandler_JSONURLShortGzip(t *testing.T) {
 			tt.args.r.Header.Set("Content-Encoding", "gzip")
 			tt.args.r.Header.Set("Accept-Encoding", "gzip")
 
-			r.Use(awd.GzipMiddleware)
+			//	r.Use(awd.GzipMiddleware)
 			r.HandleFunc(`/api/shorten`, h.JSONURLShort).Methods(http.MethodPost)
 
 			r.ServeHTTP(tt.args.w, tt.args.r)

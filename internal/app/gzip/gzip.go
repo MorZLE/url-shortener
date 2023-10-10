@@ -41,7 +41,7 @@ func (c *compressWriter) Close() error {
 	return c.zw.Close()
 }
 
-func GzipMiddleware() http.HandlerFunc {
+func GzipMiddleware(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ow := w
 
