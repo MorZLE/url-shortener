@@ -44,16 +44,6 @@ func (h *Handler) RunServer() {
 func (h *Handler) JSONURLShort(c *gin.Context) {
 	var url constjson.URLLong
 
-	//b, err := UseGzip(c.Request.Body, c.Request.Header.Get("Content-Type"))
-	//if err != nil {
-	//	c.Error(err)
-	//	c.AbortWithStatus(http.StatusInternalServerError)
-	//
-	//	return
-	//}
-
-	// b:= io.ByteCloser(c.Request.Body)
-
 	if err := json.NewDecoder(c.Request.Body).Decode(&url); err != nil {
 		c.Error(err)
 		c.AbortWithStatus(http.StatusNotFound)
@@ -77,6 +67,7 @@ func (h *Handler) JSONURLShort(c *gin.Context) {
 }
 
 func (h *Handler) ResponseValueJSON(c *gin.Context, obj constjson.URLShort) {
+
 	resp, err := json.Marshal(&obj)
 	if err != nil {
 		c.Error(err)
@@ -93,13 +84,6 @@ func (h *Handler) ResponseValueJSON(c *gin.Context, obj constjson.URLShort) {
 
 func (h *Handler) URLShortener(c *gin.Context) {
 
-	//body, err := UseGzip(c.Request.Body, c.Request.Header.Get("Content-Type"))
-	//if err != nil {
-	//	c.Error(err)
-	//	c.AbortWithStatus(http.StatusInternalServerError)
-	//
-	//	return
-	//}
 	body, err := io.ReadAll(c.Request.Body)
 
 	if err != nil {
@@ -139,30 +123,3 @@ func (h *Handler) URLGetID(c *gin.Context) {
 	c.Header("Location", url)
 	c.Status(http.StatusTemporaryRedirect)
 }
-
-//
-//func (h *Handler) JSONURLGetID(w http.ResponseWriter, r *http.Request) {
-//
-//	var url constjson.URLLong
-//	var buf bytes.Buffer
-//
-//	_, err := buf.ReadFrom(r.Body)
-//	if err != nil {
-//		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-//		return
-//	}
-//
-//	if err = json.Unmarshal(buf.Bytes(), &url); err != nil {
-//		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-//		return
-//	}
-//
-//	longURL := url.URL
-//	shortURL, err := h.logic.URLGetID(longURL[len(longURL)-8:])
-//	if err != nil {
-//		http.Error(w, "Error shorting URL", http.StatusBadRequest)
-//		return
-//	}
-//	w.Header().Set("Location", shortURL)
-//	w.WriteHeader(http.StatusTemporaryRedirect)
-//}
