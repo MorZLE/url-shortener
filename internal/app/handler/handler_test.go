@@ -347,7 +347,8 @@ func TestHandler_JSONURLShort(t *testing.T) {
 //			tt.args.r.Header.Set("Content-Encoding", "gzip")
 //			tt.args.r.Header.Set("Accept-Encoding", "gzip")
 //
-//			//	r.Use(awd.GzipMiddleware)
+//			r.Use(rout.Gzip(gzip.BestSpeed))
+//
 //			r.POST(`/api/shorten`, h.JSONURLShort)
 //
 //			r.ServeHTTP(tt.args.w, tt.args.r)

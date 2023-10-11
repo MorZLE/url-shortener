@@ -9,7 +9,6 @@ import (
 	"github.com/MorZLE/url-shortener/internal/domains"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
-	"io"
 	"log"
 	"net/http"
 )
@@ -72,6 +71,7 @@ func (h *Handler) JSONURLShort(c *gin.Context) {
 	h.ResponseValueJSON(c, constjson.URLShort{Result: shortURL})
 
 }
+
 func (h *Handler) ResponseValueJSON(c *gin.Context, obj constjson.URLShort) {
 	resp, err := json.Marshal(&obj)
 	if err != nil {
@@ -89,23 +89,14 @@ func (h *Handler) ResponseValueJSON(c *gin.Context, obj constjson.URLShort) {
 
 func (h *Handler) URLShortener(c *gin.Context) {
 
-	body, err := io.ReadAll(c.Request.Body)
-
-	log.Println("Получен url:", string(body))
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			c.Error(err)
-			c.AbortWithStatus(http.StatusBadRequest)
-		}
-	}(c.Request.Body)
-
+	body, err := UseGzip(c.Request.Body, c.Request.Header.Get("Content-Type"))
 	if err != nil {
 		c.Error(err)
-		c.AbortWithStatus(http.StatusBadRequest)
+		c.AbortWithStatus(http.StatusInternalServerError)
+
 		return
 	}
-
+	log.Println("получен URL", string(body))
 	shortURL, err := h.logic.URLShorter(string(body))
 
 	if err != nil {
