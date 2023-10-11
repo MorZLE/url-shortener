@@ -9,7 +9,8 @@ func NewStorage() Storage {
 }
 
 type Storage struct {
-	M map[string]string
+	M     map[string]string
+	count int
 }
 
 func (s *Storage) Set(key string, value string) error {
@@ -17,6 +18,7 @@ func (s *Storage) Set(key string, value string) error {
 		return consterr.ErrKeyBusy
 	}
 	s.M[key] = value
+	s.count++
 	return nil
 }
 
@@ -25,4 +27,8 @@ func (s *Storage) Get(key string) (string, error) {
 		return s.M[key], nil
 	}
 	return "", consterr.ErrNotFound
+}
+
+func (s *Storage) Count() int {
+	return s.count
 }

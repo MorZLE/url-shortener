@@ -5,7 +5,6 @@ import (
 	"github.com/MorZLE/url-shortener/internal/config"
 	"github.com/MorZLE/url-shortener/internal/domains"
 	"github.com/speps/go-hashids"
-	"time"
 )
 
 func NewService(s domains.StorageInterface, cnf *config.Config) Service {
@@ -22,13 +21,12 @@ type Service struct {
 
 func (s *Service) URLShorter(url string) (string, error) {
 	hd := hashids.NewData()
-	hd.MinLength = 6
 	h, _ := hashids.NewWithData(hd)
-	now := time.Now()
-	shortURL, _ := h.Encode([]int{int(now.Unix())})
+	shortURL, _ := h.Encode([]int{s.Storage.Count()})
 	err := s.Storage.Set(shortURL, url)
 	shortURL = s.Cnf.BaseURL + "/" + shortURL
 	if err != nil {
+		logger.Error("Ключ short URL занят:", err)
 		return "", err
 	}
 	logger.ShortURL(shortURL)
