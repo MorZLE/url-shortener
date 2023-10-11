@@ -22,16 +22,13 @@ type Service struct {
 
 func (s *Service) URLShorter(url string) (string, error) {
 	hd := hashids.NewData()
-	hd.MinLength = 6
 	h, _ := hashids.NewWithData(hd)
-	now := time.Now()
-	shortURL, _ := h.Encode([]int{int(now.Unix())})
+	shortURL, _ := h.Encode([]int{time.Now().Nanosecond()})
 	err := s.Storage.Set(shortURL, url)
 	shortURL = s.Cnf.BaseURL + "/" + shortURL
 	if err != nil {
 		logger.Error("Ключ short URL занят:", err)
-		_, _ = s.URLShorter(url)
-		//return "", err
+		return "", err
 	}
 	logger.ShortURL(shortURL)
 	return shortURL, nil
