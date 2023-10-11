@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/MorZLE/url-shortener/internal/app/logger"
 	"github.com/MorZLE/url-shortener/internal/config"
+	"github.com/MorZLE/url-shortener/internal/consterr"
 	"github.com/MorZLE/url-shortener/internal/constjson"
 	"github.com/MorZLE/url-shortener/internal/domains"
 	"github.com/gin-contrib/gzip"
@@ -40,15 +41,6 @@ func (h *Handler) RunServer() {
 
 func (h *Handler) JSONURLShort(c *gin.Context) {
 	var url constjson.URLLong
-	//var buf bytes.Buffer
-
-	//_, err := buf.ReadFrom(c.Request.Body)
-	//if err != nil {
-	//	c.Error(err)
-	//	c.AbortWithStatus(http.StatusInternalServerError)
-	//
-	//	return
-	//}
 
 	b, err := UseGzip(c.Request.Body, c.Request.Header.Get("Content-Type"))
 	if err != nil {
@@ -57,6 +49,7 @@ func (h *Handler) JSONURLShort(c *gin.Context) {
 
 		return
 	}
+	//	b = bytes.Replace(b, []byte{0x1f}, []byte{' '}, -1)
 
 	if err := json.Unmarshal(b, &url); err != nil {
 		c.Error(err)
@@ -66,7 +59,7 @@ func (h *Handler) JSONURLShort(c *gin.Context) {
 
 	longURL := url.URL
 	if longURL == "" {
-		c.Error(err)
+		c.Error(consterr.ErrGetURL)
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
