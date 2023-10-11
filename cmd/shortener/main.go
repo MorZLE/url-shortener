@@ -11,7 +11,7 @@ func main() {
 
 	cnf := config.NewConfig()
 
-	st := storage.NewStorage()
+	st := storage.NewStorage(cnf)
 	lgc := service.NewService(&st, cnf)
 	hdr := handler.NewHandler(&lgc, cnf)
 
