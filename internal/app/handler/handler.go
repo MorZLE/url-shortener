@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	gzipmilddle "github.com/MorZLE/url-shortener/internal/app/gzip"
 	"github.com/MorZLE/url-shortener/internal/app/logger"
 	"github.com/MorZLE/url-shortener/internal/config"
 	"github.com/MorZLE/url-shortener/internal/consterr"
@@ -9,6 +10,7 @@ import (
 	"github.com/MorZLE/url-shortener/internal/domains"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
+	"io"
 	"log"
 	"net/http"
 )
@@ -26,6 +28,7 @@ func (h *Handler) RunServer() {
 	logger.Initialize()
 
 	router := gin.Default()
+	router.Use(gzipmilddle.GzipMiddleware())
 	router.Use(gzip.Gzip(gzip.BestSpeed))
 	router.Use(gin.Logger())
 
@@ -41,16 +44,17 @@ func (h *Handler) RunServer() {
 func (h *Handler) JSONURLShort(c *gin.Context) {
 	var url constjson.URLLong
 
-	b, err := UseGzip(c.Request.Body, c.Request.Header.Get("Content-Type"))
-	if err != nil {
-		c.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
+	//b, err := UseGzip(c.Request.Body, c.Request.Header.Get("Content-Type"))
+	//if err != nil {
+	//	c.Error(err)
+	//	c.AbortWithStatus(http.StatusInternalServerError)
+	//
+	//	return
+	//}
 
-		return
-	}
-	//	b = bytes.Replace(b, []byte{0x1f}, []byte{' '}, -1)
+	// b:= io.ByteCloser(c.Request.Body)
 
-	if err := json.Unmarshal(b, &url); err != nil {
+	if err := json.NewDecoder(c.Request.Body).Decode(&url); err != nil {
 		c.Error(err)
 		c.AbortWithStatus(http.StatusNotFound)
 		return
@@ -89,13 +93,21 @@ func (h *Handler) ResponseValueJSON(c *gin.Context, obj constjson.URLShort) {
 
 func (h *Handler) URLShortener(c *gin.Context) {
 
-	body, err := UseGzip(c.Request.Body, c.Request.Header.Get("Content-Type"))
+	//body, err := UseGzip(c.Request.Body, c.Request.Header.Get("Content-Type"))
+	//if err != nil {
+	//	c.Error(err)
+	//	c.AbortWithStatus(http.StatusInternalServerError)
+	//
+	//	return
+	//}
+	body, err := io.ReadAll(c.Request.Body)
+
 	if err != nil {
 		c.Error(err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-
+		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
+
 	log.Println("получен URL", string(body))
 	shortURL, err := h.logic.URLShorter(string(body))
 

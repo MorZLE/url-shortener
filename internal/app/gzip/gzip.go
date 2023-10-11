@@ -2,68 +2,43 @@ package gzip
 
 import (
 	"compress/gzip"
-	"github.com/MorZLE/url-shortener/internal/app/logger"
+	"github.com/gin-gonic/gin"
+	"io"
 	"net/http"
 	"strings"
 )
 
-// compressWriter реализует интерфейс http.ResponseWriter и позволяет прозрачно для сервера
-// сжимать передаваемые данные и выставлять правильные HTTP-заголовки
-type compressWriter struct {
-	w  http.ResponseWriter
-	zw *gzip.Writer
-}
-
-func newCompressWriter(w http.ResponseWriter) *compressWriter {
-	return &compressWriter{
-		w:  w,
-		zw: gzip.NewWriter(w),
-	}
-}
-
-func (c *compressWriter) Header() http.Header {
-	return c.w.Header()
-}
-
-func (c *compressWriter) Write(p []byte) (int, error) {
-	return c.zw.Write(p)
-}
-
-func (c *compressWriter) WriteHeader(statusCode int) {
-	if statusCode < 300 {
-		c.w.Header().Set("Content-Encoding", "gzip")
-	}
-	c.w.WriteHeader(statusCode)
-}
-
-// Close закрывает gzip.Writer и досылает все данные из буфера.
-func (c *compressWriter) Close() error {
-	return c.zw.Close()
-}
-
-func GzipMiddleware(h http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ow := w
-
-		if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
-			cw := newCompressWriter(w)
-			cw.Header().Set("Content-Encoding", "gzip")
-			ow = cw
-			defer cw.Close()
-		}
-
-		if strings.Contains(r.Header.Get("Content-Encoding"), "gzip") {
-			reader, err := gzip.NewReader(r.Body)
+// GzipMiddleware is a strongly typed function that adds gzip compression to the request and response bodies.
+func GzipMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Check the Content-Encoding header to determine the encoding
+		contentEncoding := c.GetHeader("Content-Encoding")
+		if strings.Contains(contentEncoding, "gzip") {
+			// Создаем gzip.Reader для чтения сжатых данных
+			reader, err := gzip.NewReader(c.Request.Body)
 			if err != nil {
-				logger.Error("Error creating gzip reader:", err)
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				c.AbortWithError(http.StatusInternalServerError, err)
 				return
 			}
 			defer reader.Close()
 
-			r.Body = reader
+			// Заменяем исходное тело запроса на распакованные данные
+			c.Request.Body = http.MaxBytesReader(c.Writer, reader, c.Request.ContentLength)
+			c.Request.Header.Del("Content-Encoding")
+			c.Request.Header.Del("Content-Length")
+			c.Request.Header.Del("Content-Type")
 		}
 
-		h.ServeHTTP(ow, r)
+		c.Next()
 	}
+}
+
+// gzipWriter является оберткой над http.ResponseWriter для сжатия данных
+type gzipWriter struct {
+	gin.ResponseWriter
+	writer io.Writer
+}
+
+func (g *gzipWriter) Write(data []byte) (int, error) {
+	return g.writer.Write(data)
 }
