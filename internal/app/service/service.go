@@ -29,7 +29,9 @@ func (s *Service) URLShorter(url string) (string, error) {
 	err := s.Storage.Set(shortURL, url)
 	shortURL = s.Cnf.BaseURL + "/" + shortURL
 	if err != nil {
-		return "", err
+		logger.Error("Ключ short URL занят:", err)
+		_, _ = s.URLShorter(url)
+		//return "", err
 	}
 	logger.ShortURL(shortURL)
 	return shortURL, nil
