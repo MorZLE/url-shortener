@@ -11,16 +11,16 @@ func NewStorage(cnf *config.Config) Storage {
 	if cnf.Memory != "" {
 		writer, err := NewWriter(cnf.Memory)
 		if err != nil {
-			log.Fatal("Не удалось создать файл для хранения")
+			log.Fatal("Не удалось создать файл для хранения ", err)
 		}
 
 		reader, err := NewReader(cnf.Memory)
 		if err != nil {
-			log.Fatal("Не удалось создать файл для хранения")
+			log.Fatal("Не удалось прочитать файл для хранения", err)
 		}
 		m, err := reader.ReadURL()
 		if err != nil {
-			log.Fatal("Не удалось прочитать файл")
+			log.Fatal("Не удалось прочитать файл", err)
 		}
 		return Storage{M: m, Writer: writer}
 	}

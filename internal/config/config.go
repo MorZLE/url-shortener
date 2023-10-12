@@ -2,6 +2,7 @@ package config
 
 import (
 	"flag"
+	"fmt"
 	"os"
 )
 
@@ -16,7 +17,7 @@ type Config struct {
 	Memory     string
 }
 
-const BaseFile = "/tmp/short-url-db.json"
+const BaseFile = "tmp/short-url-db.json"
 
 func ParseFlags(p *Config) *Config {
 
@@ -35,9 +36,7 @@ func ParseFlags(p *Config) *Config {
 	}
 	if memory := os.Getenv("FILE_STORAGE_PATH "); memory != "" {
 		p.Memory = memory
-	} else {
-		p.Memory = ""
 	}
-
+	fmt.Println("memory", p.Memory)
 	return p
 }
