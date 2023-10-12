@@ -21,8 +21,8 @@ const BaseFile = "/tmp/short-url-db.json"
 func ParseFlags(p *Config) *Config {
 
 	flag.StringVar(&p.ServerAddr, "a", ":8080", "address and port to run server")
-	flag.StringVar(&p.BaseURL, "b", BaseFile, "address shortURLer")
-	flag.StringVar(&p.Memory, "f", "/tmp/short-url-db.json", "save memory")
+	flag.StringVar(&p.BaseURL, "b", "http://127.0.0.1:8080", "address shortURLer")
+	flag.StringVar(&p.Memory, "f", BaseFile, "save memory")
 
 	flag.Parse()
 
