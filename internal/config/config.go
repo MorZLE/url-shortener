@@ -2,7 +2,7 @@ package config
 
 import (
 	"flag"
-	"fmt"
+	"log"
 	"os"
 )
 
@@ -37,6 +37,6 @@ func ParseFlags(p *Config) *Config {
 	if memory := os.Getenv("FILE_STORAGE_PATH "); memory != "" {
 		p.Memory = memory
 	}
-	fmt.Println("memory", p.Memory)
+	log.Println("memory", p.Memory)
 	return p
 }
