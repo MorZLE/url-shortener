@@ -29,7 +29,6 @@ func NewStorage(cnf *config.Config) Storage {
 
 type Storage struct {
 	M      map[string]string
-	count  int
 	Writer *Writer
 }
 
@@ -44,7 +43,6 @@ func (s *Storage) Set(key string, value string) error {
 		}
 	}
 	s.M[key] = value
-	s.count++
 	return nil
 }
 
