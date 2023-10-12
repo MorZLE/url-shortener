@@ -8,7 +8,7 @@ import (
 )
 
 func NewStorage(cnf *config.Config) Storage {
-	if cnf.Memory == "" {
+	if cnf.Memory != "" {
 		writer, err := NewWriter(cnf.Memory)
 		if err != nil {
 			log.Fatal("Не удалось создать файл для хранения")
@@ -57,4 +57,11 @@ func (s *Storage) Get(key string) (string, error) {
 
 func (s *Storage) Count() int {
 	return s.count
+}
+
+func (s *Storage) Close() error {
+	if s.Writer != nil {
+		return s.Writer.Close()
+	}
+	return nil
 }

@@ -16,5 +16,5 @@ func main() {
 	hdr := handler.NewHandler(&lgc, cnf)
 
 	hdr.RunServer()
-
+	defer st.Close()
 }
