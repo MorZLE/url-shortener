@@ -36,10 +36,7 @@ func ParseFlags(p *Config) *Config {
 	}
 
 	if memory := os.Getenv("FILE_STORAGE_PATH"); memory != "" {
-		p.Memory = memory[1:]
-	}
-	if p.Memory == BaseFile {
-		p.Memory = p.Memory[1:]
+		p.Memory = memory
 	}
 
 	log.Println("memory", p.Memory)
