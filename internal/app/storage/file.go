@@ -6,6 +6,7 @@ import (
 	"github.com/MorZLE/url-shortener/internal/constjson"
 	"io"
 	"os"
+	"path/filepath"
 )
 
 type Writer struct {
@@ -14,7 +15,11 @@ type Writer struct {
 }
 
 func NewWriter(fileName string) (*Writer, error) {
-	file, err := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
+	err := os.MkdirAll(filepath.Dir(fileName), os.ModePerm)
+	if err != nil {
+		return nil, err
+	}
+	file, err := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +52,11 @@ type Reader struct {
 }
 
 func NewReader(filename string) (*Reader, error) {
-	// открываем файл для чтения
+	err := os.MkdirAll(filepath.Dir(filename), os.ModePerm)
+	if err != nil {
+		return nil, err
+	}
+
 	file, err := os.OpenFile(filename, os.O_RDONLY|os.O_CREATE, 0666)
 	if err != nil {
 		return nil, err
