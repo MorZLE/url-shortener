@@ -17,7 +17,7 @@ type Config struct {
 	Memory     string
 }
 
-const BaseFile = "tmp/short-url-db.json"
+const BaseFile = "short-url-db.json"
 
 func ParseFlags(p *Config) *Config {
 
