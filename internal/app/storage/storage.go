@@ -56,7 +56,7 @@ func (s *Storage) Get(key string) (string, error) {
 }
 
 func (s *Storage) Count() int {
-	return s.count
+	return len(s.M)
 }
 
 func (s *Storage) Close() error {
