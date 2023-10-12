@@ -43,10 +43,10 @@ func ParseFlags(p *Config) *Config {
 	}
 
 	if baseURL := os.Getenv("BASE_URL"); baseURL != "" {
-		p.BaseURL = ".." + baseURL
+		p.BaseURL = baseURL
 	}
 	if memory := os.Getenv("FILE_STORAGE_PATH "); memory != "" {
-		p.Memory = ".." + memory
+		p.Memory = memory[1:]
 		return p
 	}
 	if p.Memory == "sfse" {
