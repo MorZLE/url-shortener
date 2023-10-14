@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"fmt"
 	"github.com/MorZLE/url-shortener/internal/config"
 	//"github.com/MorZLE/url-shortener/internal/consts"
 	//"github.com/MorZLE/url-shortener/internal/constjson"
@@ -38,7 +39,7 @@ func (d *DB) Count() int {
 
 func (d *DB) Ping() error {
 	if err := d.db.Ping(); err != nil {
-		return err
+		return fmt.Errorf("ping error: %w", err)
 	}
 	return nil
 }
