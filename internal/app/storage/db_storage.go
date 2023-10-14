@@ -2,7 +2,7 @@ package storage
 
 import (
 	"github.com/MorZLE/url-shortener/internal/config"
-	//"github.com/MorZLE/url-shortener/internal/const"
+	//"github.com/MorZLE/url-shortener/internal/consts"
 	//"github.com/MorZLE/url-shortener/internal/constjson"
 	//"log"
 	"database/sql"

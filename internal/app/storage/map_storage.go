@@ -3,7 +3,7 @@ package storage
 import (
 	"fmt"
 	"github.com/MorZLE/url-shortener/internal/config"
-	"github.com/MorZLE/url-shortener/internal/const"
+	"github.com/MorZLE/url-shortener/internal/consts"
 	"github.com/MorZLE/url-shortener/internal/domains"
 	"github.com/MorZLE/url-shortener/internal/models"
 )
@@ -46,7 +46,7 @@ func (s *Storage) Ping() error {
 
 func (s *Storage) Set(key string, value string) error {
 	if s.M[key] != "" {
-		return _const.ErrKeyBusy
+		return consts.ErrKeyBusy
 	}
 	if s.Writer != nil {
 		err := s.Writer.WriteURL(&models.URLFile{ShortURL: key, OriginalURL: value})
@@ -62,7 +62,7 @@ func (s *Storage) Get(key string) (string, error) {
 	if s.M[key] != "" {
 		return s.M[key], nil
 	}
-	return "", _const.ErrNotFound
+	return "", consts.ErrNotFound
 }
 
 func (s *Storage) Count() int {

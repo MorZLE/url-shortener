@@ -5,7 +5,7 @@ import (
 	gzipmilddle "github.com/MorZLE/url-shortener/internal/app/gzip"
 	"github.com/MorZLE/url-shortener/internal/app/logger"
 	"github.com/MorZLE/url-shortener/internal/config"
-	"github.com/MorZLE/url-shortener/internal/const"
+	"github.com/MorZLE/url-shortener/internal/consts"
 	"github.com/MorZLE/url-shortener/internal/domains"
 	"github.com/MorZLE/url-shortener/internal/models"
 	"github.com/gin-contrib/gzip"
@@ -53,7 +53,7 @@ func (h *Handler) JSONURLShort(c *gin.Context) {
 
 	longURL := url.URL
 	if longURL == "" {
-		c.Error(_const.ErrGetURL)
+		c.Error(consts.ErrGetURL)
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
