@@ -3,7 +3,8 @@ package storage
 import (
 	"bufio"
 	"encoding/json"
-	"github.com/MorZLE/url-shortener/internal/constjson"
+	"fmt"
+	"github.com/MorZLE/url-shortener/internal/models"
 	"io"
 	"os"
 	"path/filepath"
@@ -17,11 +18,11 @@ type Writer struct {
 func NewWriter(fileName string) (*Writer, error) {
 	err := os.MkdirAll(filepath.Dir(fileName), os.ModePerm)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("can't create directory: %w", err)
 	}
 	file, err := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("can't open directory: %w", err)
 	}
 
 	return &Writer{
@@ -30,7 +31,7 @@ func NewWriter(fileName string) (*Writer, error) {
 	}, nil
 }
 
-func (p *Writer) WriteURL(url *constjson.URLFile) error {
+func (p *Writer) WriteURL(url *models.URLFile) error {
 	data, err := json.Marshal(&url)
 	if err != nil {
 		return err
@@ -54,12 +55,12 @@ type Reader struct {
 func NewReader(filename string) (*Reader, error) {
 	err := os.MkdirAll(filepath.Dir(filename), os.ModePerm)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("can't create directory: %w", err)
 	}
 
 	file, err := os.OpenFile(filename, os.O_RDONLY|os.O_CREATE, 0666)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("can't open directory: %w", err)
 	}
 
 	return &Reader{
@@ -79,13 +80,13 @@ func (c *Reader) ReadURL() (map[string]string, error) {
 	defer c.Close()
 
 	for {
-		var url constjson.URLFile
+		var url models.URLFile
 		nextData, err := c.reader.ReadBytes('\n')
 		if err != nil {
 			if err == io.EOF {
 				break
 			}
-			return nil, err
+			return nil, fmt.Errorf("can't read file: %w", err)
 		}
 
 		err = json.Unmarshal(nextData, &url)

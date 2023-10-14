@@ -21,14 +21,22 @@ type Service struct {
 
 func (s *Service) URLShorter(url string) (string, error) {
 	hd := hashids.NewData()
-	h, _ := hashids.NewWithData(hd)
-	shortURL, _ := h.Encode([]int{s.Storage.Count()})
-	err := s.Storage.Set(shortURL, url)
-	shortURL = s.Cnf.BaseURL + "/" + shortURL
+	h, err := hashids.NewWithData(hd)
+	if err != nil {
+		logger.Error("Ошибка NewWithData:", err)
+		return "", err
+	}
+	shortURL, err := h.Encode([]int{s.Storage.Count()})
+	if err != nil {
+		logger.Error("Ошибка Encode:", err)
+		return "", err
+	}
+	err = s.Storage.Set(shortURL, url)
 	if err != nil {
 		logger.Error("Ключ short URL занят:", err)
 		return "", err
 	}
+	shortURL = s.Cnf.BaseURL + "/" + shortURL
 	logger.ShortURL(shortURL)
 	return shortURL, nil
 }
@@ -41,4 +49,8 @@ func (s *Service) URLGetID(url string) (string, error) {
 
 	return val, nil
 
+}
+
+func (s *Service) CheckPing() error {
+	return s.Storage.Ping()
 }

@@ -8,8 +8,8 @@ import (
 	"github.com/MorZLE/url-shortener/internal/app/service"
 	"github.com/MorZLE/url-shortener/internal/app/storage"
 	"github.com/MorZLE/url-shortener/internal/config"
-	"github.com/MorZLE/url-shortener/internal/constjson"
 	"github.com/MorZLE/url-shortener/internal/domains/mocks"
+	"github.com/MorZLE/url-shortener/internal/models"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -201,9 +201,9 @@ func TestHandler_JSONURLShort(t *testing.T) {
 		BaseURL:    "http://127.0.0.1:8080",
 		ServerAddr: "http://127.0.0.1:8080",
 	}
-	t1, _ := json.Marshal(&constjson.URLLong{URL: "https://practicum.yandex.ru/"})
-	t2, _ := json.Marshal(&constjson.URLLong{URL: "https://vk.com/"})
-	t3, _ := json.Marshal(&constjson.URLShort{Result: "https://vk.com/"})
+	t1, _ := json.Marshal(&models.URLLong{URL: "https://practicum.yandex.ru/"})
+	t2, _ := json.Marshal(&models.URLLong{URL: "https://vk.com/"})
+	t3, _ := json.Marshal(&models.URLShort{Result: "https://vk.com/"})
 
 	tests := []struct {
 		name       string
@@ -369,7 +369,7 @@ func TestHandler_JSONURLShortGzip(t *testing.T) {
 
 			reader.Close()
 
-			var url constjson.URLShort
+			var url models.URLShort
 
 			if err := json.NewDecoder(reader).Decode(&url); err != nil {
 				log.Fatal(err)

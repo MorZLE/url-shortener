@@ -12,9 +12,10 @@ func NewConfig() *Config {
 }
 
 type Config struct {
-	ServerAddr string
-	BaseURL    string
-	Memory     string
+	ServerAddr  string
+	BaseURL     string
+	Memory      string
+	DatabaseDsn string
 }
 
 const BaseFile = "tmp/short-url-db.json"
@@ -24,6 +25,7 @@ func ParseFlags(p *Config) *Config {
 	flag.StringVar(&p.ServerAddr, "a", ":8080", "address and port to run server")
 	flag.StringVar(&p.BaseURL, "b", "http://127.0.0.1:8080", "address shortURLer")
 	flag.StringVar(&p.Memory, "f", BaseFile, "save memory")
+	flag.StringVar(&p.DatabaseDsn, "d", "", "database dsn")
 
 	flag.Parse()
 
@@ -37,6 +39,10 @@ func ParseFlags(p *Config) *Config {
 
 	if memory := os.Getenv("FILE_STORAGE_PATH"); memory != "" {
 		p.Memory = memory
+	}
+
+	if databaseDsn := os.Getenv("DATABASE_DSN"); databaseDsn != "" {
+		p.DatabaseDsn = databaseDsn
 	}
 
 	log.Println("memory", p.Memory)

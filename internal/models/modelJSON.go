@@ -1,4 +1,4 @@
-package constjson
+package models
 
 type URLLong struct {
 	URL string `json:"url"`
