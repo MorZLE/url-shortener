@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/MorZLE/url-shortener/internal/config"
-	"github.com/MorZLE/url-shortener/internal/consts"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	//_ "github.com/mattn/go-sqlite3"
 )
@@ -16,10 +15,10 @@ func NewDB(cnf *config.Config) (DB, error) {
 		return DB{}, fmt.Errorf("can't connect to database: %w", err)
 	}
 	createTableQuery := `
-		CREATE TABLE IF NOT EXISTS urli (
-			id SERIAL PRIMARY KEY,
-			short_url TEXT NOT NULL,
-			original_url TEXT NOT NULL
+		CREATE TABLE IF NOT EXISTS urls (
+		    id SERIAL PRIMARY KEY,
+			short_url TEXT UNIQUE,
+			original_url TEXT
 		)
 	`
 	_, err = db.ExecContext(context.Background(), createTableQuery)
@@ -45,12 +44,10 @@ func (d *DB) Get(key string) (string, error) {
 }
 
 func (d *DB) Set(key string, value string) error {
-	query := "INSERT INTO urls (original_url, short_url) VALUES (?, ?) " +
-		"ON DUPLICATE KEY UPDATE " +
-		"original_url = VALUES(original_url)"
+	query := `INSERT INTO urls (original_url, short_url) VALUES (?, ?)`
 	_, err := d.db.ExecContext(context.Background(), query, key, value)
 	if err != nil {
-		return consts.ErrGetURL
+		return fmt.Errorf("can't set url: %w", err)
 	}
 	return nil
 }
