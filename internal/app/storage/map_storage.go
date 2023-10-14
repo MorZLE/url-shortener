@@ -9,6 +9,14 @@ import (
 )
 
 func NewStorage(cnf *config.Config) (domains.StorageInterface, error) {
+	if cnf.DatabaseDsn != "" {
+		db, err := NewDB(cnf)
+		if err != nil {
+			return nil, fmt.Errorf("не удалось создать базу данных %w", err)
+		}
+		return &db, nil
+	}
+
 	if cnf.Memory != "" {
 		writer, err := NewWriter(cnf.Memory)
 		if err != nil {
@@ -25,24 +33,17 @@ func NewStorage(cnf *config.Config) (domains.StorageInterface, error) {
 		}
 		return &Storage{M: m, Writer: writer}, nil
 	}
-	if cnf.DatabaseDsn != "" {
-		db, err := NewDB(cnf)
-		if err != nil {
-			return nil, fmt.Errorf("не удалось создать базу данных %w", err)
-		}
-		return &Storage{M: make(map[string]string), db: db}, nil
-	}
+
 	return &Storage{M: make(map[string]string)}, nil
 }
 
 type Storage struct {
 	M      map[string]string
 	Writer *Writer
-	db     DB
 }
 
 func (s *Storage) Ping() error {
-	return s.db.Ping()
+	return nil
 }
 
 func (s *Storage) Set(key string, value string) error {
