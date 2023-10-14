@@ -18,7 +18,10 @@ func NewDB(cnf *config.Config) (DB, error) {
 	if err != nil {
 		return DB{}, fmt.Errorf("can't connect to database: %w", err)
 	}
-	_, err = db.ExecContext(context.Background(), "CREATE TABLE IF NOT EXISTS urls (id SERIAL PRIMARY KEY, short_url TEXT NOT NULL, original_url TEXT NOT NULL)")
+	_, err = db.ExecContext(context.Background(), "CREATE TABLE IF NOT EXISTS urls ("+
+		"id SERIAL PRIMARY KEY, "+
+		"short_url TEXT NOT NULL, "+
+		"original_url TEXT NOT NULL)")
 	if err != nil {
 		return DB{}, fmt.Errorf("can't create table to database: %w", err)
 	}
@@ -42,7 +45,9 @@ func (d *DB) Get(key string) (string, error) {
 }
 
 func (d *DB) Set(key string, value string) error {
-	_, err := d.db.ExecContext(context.Background(), "INSERT INTO urls (original_url, short_url) VALUES (?, ?) ON DUPLICATE KEY UPDATE original_url = VALUES(original_url)", key, value)
+	_, err := d.db.ExecContext(context.Background(), "INSERT INTO urls (original_url, short_url) VALUES (?, ?) "+
+		"ON DUPLICATE KEY UPDATE "+
+		"original_url = VALUES(original_url)", key, value)
 	if err != nil {
 		return consts.ErrGetURL
 	}

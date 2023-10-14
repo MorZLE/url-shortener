@@ -18,13 +18,13 @@ type Config struct {
 	DatabaseDsn string
 }
 
-const BaseFile = "tmp/short-url-db.json"
+//const BaseFile = "tmp/short-url-db.json"
 
 func ParseFlags(p *Config) *Config {
 
 	flag.StringVar(&p.ServerAddr, "a", ":8080", "address and port to run server")
 	flag.StringVar(&p.BaseURL, "b", "http://127.0.0.1:8080", "address shortURLer")
-	flag.StringVar(&p.Memory, "f", BaseFile, "save memory")
+	flag.StringVar(&p.Memory, "f", "", "save memory")
 	flag.StringVar(&p.DatabaseDsn, "d", "", "database dsn")
 
 	flag.Parse()
@@ -45,6 +45,7 @@ func ParseFlags(p *Config) *Config {
 		p.DatabaseDsn = databaseDsn
 	}
 
+	log.Println("server", p.ServerAddr)
 	log.Println("memory", p.Memory)
 	return p
 }
