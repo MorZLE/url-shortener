@@ -14,7 +14,7 @@ import (
 )
 
 func NewDB(cnf *config.Config) (DB, error) {
-	db, err := sql.Open("pgx", cnf.ServerAddr)
+	db, err := sql.Open("pgx", cnf.DatabaseDsn)
 	if err != nil {
 		return DB{}, fmt.Errorf("can't connect to database: %w", err)
 	}
