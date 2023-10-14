@@ -35,7 +35,7 @@ type DB struct {
 
 func (d *DB) Get(key string) (string, error) {
 	var res string
-	err := d.db.QueryRowContext(context.Background(), "SELECT * FROM urls WHERE short_url = ?", key).Scan(&res)
+	err := d.db.QueryRowContext(context.Background(), "SELECT original_url FROM urls WHERE short_url = $1", key).Scan(&res)
 	if err != nil {
 		return "", fmt.Errorf("can't get url: %w", err)
 	}
@@ -44,8 +44,9 @@ func (d *DB) Get(key string) (string, error) {
 }
 
 func (d *DB) Set(key string, value string) error {
-	query := `INSERT INTO urls (original_url, short_url) VALUES (?, ?)`
-	_, err := d.db.ExecContext(context.Background(), query, key, value)
+	query := `INSERT INTO urls (original_url, short_url) VALUES ($1, $2)`
+	//_, err := d.db.ExecContext(context.Background(), query, key, value)
+	_, err := d.db.Query(query, key, value)
 	if err != nil {
 		return fmt.Errorf("can't set url: %w", err)
 	}
