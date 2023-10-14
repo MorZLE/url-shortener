@@ -1,4 +1,4 @@
-package consterr
+package consts
 
 import "errors"
 

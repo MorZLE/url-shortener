@@ -5,16 +5,20 @@ import (
 	"github.com/MorZLE/url-shortener/internal/app/service"
 	"github.com/MorZLE/url-shortener/internal/app/storage"
 	"github.com/MorZLE/url-shortener/internal/config"
+	"log"
 )
 
 func main() {
 
 	cnf := config.NewConfig()
 
-	st := storage.NewStorage()
-	lgc := service.NewService(&st, cnf)
+	st, err := storage.NewStorage(cnf)
+	if err != nil {
+		log.Fatal(err)
+	}
+	lgc := service.NewService(st, cnf)
 	hdr := handler.NewHandler(&lgc, cnf)
 
 	hdr.RunServer()
-
+	defer st.Close()
 }

@@ -9,6 +9,20 @@ type ServiceInterface struct {
 	mock.Mock
 }
 
+// CheckPing provides a mock function with given fields:
+func (_m *ServiceInterface) CheckPing() error {
+	ret := _m.Called()
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // URLGetID provides a mock function with given fields: url
 func (_m *ServiceInterface) URLGetID(url string) (string, error) {
 	ret := _m.Called(url)

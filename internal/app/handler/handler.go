@@ -5,9 +5,9 @@ import (
 	gzipmilddle "github.com/MorZLE/url-shortener/internal/app/gzip"
 	"github.com/MorZLE/url-shortener/internal/app/logger"
 	"github.com/MorZLE/url-shortener/internal/config"
-	"github.com/MorZLE/url-shortener/internal/consterr"
-	"github.com/MorZLE/url-shortener/internal/constjson"
+	"github.com/MorZLE/url-shortener/internal/consts"
 	"github.com/MorZLE/url-shortener/internal/domains"
+	"github.com/MorZLE/url-shortener/internal/models"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"io"
@@ -35,6 +35,7 @@ func (h *Handler) RunServer() {
 	router.POST(`/`, h.URLShortener)
 	router.POST(`/api/shorten`, h.JSONURLShort)
 	router.GET(`/:id`, h.URLGetID)
+	router.GET(`/ping`, h.CheckPing)
 
 	log.Fatal(router.Run(h.cnf.ServerAddr))
 
@@ -42,7 +43,7 @@ func (h *Handler) RunServer() {
 }
 
 func (h *Handler) JSONURLShort(c *gin.Context) {
-	var url constjson.URLLong
+	var url models.URLLong
 
 	if err := json.NewDecoder(c.Request.Body).Decode(&url); err != nil {
 		c.Error(err)
@@ -52,7 +53,7 @@ func (h *Handler) JSONURLShort(c *gin.Context) {
 
 	longURL := url.URL
 	if longURL == "" {
-		c.Error(consterr.ErrGetURL)
+		c.Error(consts.ErrGetURL)
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
@@ -62,11 +63,11 @@ func (h *Handler) JSONURLShort(c *gin.Context) {
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
-	h.ResponseValueJSON(c, constjson.URLShort{Result: shortURL})
+	h.ResponseValueJSON(c, models.URLShort{Result: shortURL})
 
 }
 
-func (h *Handler) ResponseValueJSON(c *gin.Context, obj constjson.URLShort) {
+func (h *Handler) ResponseValueJSON(c *gin.Context, obj models.URLShort) {
 
 	resp, err := json.Marshal(&obj)
 	if err != nil {
@@ -122,4 +123,13 @@ func (h *Handler) URLGetID(c *gin.Context) {
 
 	c.Header("Location", url)
 	c.Status(http.StatusTemporaryRedirect)
+}
+
+func (h *Handler) CheckPing(c *gin.Context) {
+	if err := h.logic.CheckPing(); err != nil {
+		c.Error(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+	c.Status(http.StatusOK)
 }

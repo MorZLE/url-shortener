@@ -9,6 +9,34 @@ type StorageInterface struct {
 	mock.Mock
 }
 
+// Close provides a mock function with given fields:
+func (_m *StorageInterface) Close() error {
+	ret := _m.Called()
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// Count provides a mock function with given fields:
+func (_m *StorageInterface) Count() int {
+	ret := _m.Called()
+
+	var r0 int
+	if rf, ok := ret.Get(0).(func() int); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+
+	return r0
+}
+
 // Get provides a mock function with given fields: key
 func (_m *StorageInterface) Get(key string) (string, error) {
 	ret := _m.Called(key)
@@ -31,6 +59,20 @@ func (_m *StorageInterface) Get(key string) (string, error) {
 	}
 
 	return r0, r1
+}
+
+// Ping provides a mock function with given fields:
+func (_m *StorageInterface) Ping() error {
+	ret := _m.Called()
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // Set provides a mock function with given fields: key, value
