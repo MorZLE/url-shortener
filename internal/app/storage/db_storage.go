@@ -44,9 +44,8 @@ func (d *DB) Get(key string) (string, error) {
 }
 
 func (d *DB) Set(key string, value string) error {
-	query := `INSERT INTO urls (original_url, short_url) VALUES ($1, $2)`
-	//_, err := d.db.ExecContext(context.Background(), query, key, value)
-	_, err := d.db.Query(query, key, value)
+	query := `INSERT INTO urls (short_url, original_url) VALUES ($1, $2)`
+	_, err := d.db.ExecContext(context.Background(), query, key, value)
 	if err != nil {
 		return fmt.Errorf("can't set url: %w", err)
 	}
@@ -54,9 +53,8 @@ func (d *DB) Set(key string, value string) error {
 }
 
 func (d *DB) Count() int {
-	row := d.db.QueryRowContext(context.Background(), "SELECT COUNT(*) FROM urls")
 	var res int
-	err := row.Scan(&res)
+	err := d.db.QueryRowContext(context.Background(), "SELECT COUNT(*) FROM urls").Scan(&res)
 	if err != nil {
 		return 0
 	}
