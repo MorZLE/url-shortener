@@ -2,15 +2,12 @@ package storage
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"github.com/MorZLE/url-shortener/internal/config"
 	"github.com/MorZLE/url-shortener/internal/consts"
-
-	//"github.com/MorZLE/url-shortener/internal/consts"
-	//"github.com/MorZLE/url-shortener/internal/constjson"
-	//"log"
-	"database/sql"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	//_ "github.com/mattn/go-sqlite3"
 )
 
 func NewDB(cnf *config.Config) (DB, error) {
@@ -18,10 +15,14 @@ func NewDB(cnf *config.Config) (DB, error) {
 	if err != nil {
 		return DB{}, fmt.Errorf("can't connect to database: %w", err)
 	}
-	_, err = db.ExecContext(context.Background(), "CREATE TABLE IF NOT EXISTS urls ("+
-		"id SERIAL PRIMARY KEY, "+
-		"short_url TEXT NOT NULL, "+
-		"original_url TEXT NOT NULL)")
+	createTableQuery := `
+		CREATE TABLE IF NOT EXISTS urli (
+			id SERIAL PRIMARY KEY,
+			short_url TEXT NOT NULL,
+			original_url TEXT NOT NULL
+		)
+	`
+	_, err = db.ExecContext(context.Background(), createTableQuery)
 	if err != nil {
 		return DB{}, fmt.Errorf("can't create table to database: %w", err)
 	}
@@ -35,8 +36,7 @@ type DB struct {
 
 func (d *DB) Get(key string) (string, error) {
 	var res string
-	row := d.db.QueryRowContext(context.Background(), "SELECT * FROM urls WHERE short_url = ?", key)
-	err := row.Scan(&res)
+	err := d.db.QueryRowContext(context.Background(), "SELECT * FROM urls WHERE short_url = ?", key).Scan(&res)
 	if err != nil {
 		return "", fmt.Errorf("can't get url: %w", err)
 	}
@@ -45,9 +45,10 @@ func (d *DB) Get(key string) (string, error) {
 }
 
 func (d *DB) Set(key string, value string) error {
-	_, err := d.db.ExecContext(context.Background(), "INSERT INTO urls (original_url, short_url) VALUES (?, ?) "+
-		"ON DUPLICATE KEY UPDATE "+
-		"original_url = VALUES(original_url)", key, value)
+	query := "INSERT INTO urls (original_url, short_url) VALUES (?, ?) " +
+		"ON DUPLICATE KEY UPDATE " +
+		"original_url = VALUES(original_url)"
+	_, err := d.db.ExecContext(context.Background(), query, key, value)
 	if err != nil {
 		return consts.ErrGetURL
 	}
@@ -71,6 +72,7 @@ func (d *DB) Ping() error {
 	}
 	return nil
 }
+
 func (d *DB) Close() error {
 	return d.db.Close()
 }

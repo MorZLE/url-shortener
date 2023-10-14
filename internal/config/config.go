@@ -47,5 +47,6 @@ func ParseFlags(p *Config) *Config {
 
 	log.Println("server", p.ServerAddr)
 	log.Println("memory", p.Memory)
+	log.Println("database", p.DatabaseDsn)
 	return p
 }
