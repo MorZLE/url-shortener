@@ -22,7 +22,9 @@ type Service struct {
 
 func (s *Service) URLsShorter(data []models.BatchSet) ([]models.BatchGet, error) {
 
-	shUrls := make([]models.BatchGet, len(data))
+	data = data[2:]
+	var shUrls []models.BatchGet
+
 	shURStorage := make(map[string]string)
 	for i, url := range data {
 		ln := s.Storage.Count() + i + 1
@@ -40,7 +42,7 @@ func (s *Service) URLsShorter(data []models.BatchSet) ([]models.BatchGet, error)
 		shURStorage[shortURL] = url.OriginalURL
 		shortURL = s.Cnf.BaseURL + "/" + shortURL
 		shUrls = append(shUrls, models.BatchGet{
-			CorrelationId: url.CorrelationId,
+			CorrelationID: url.CorrelationID,
 			ShortURL:      shortURL,
 		})
 	}
