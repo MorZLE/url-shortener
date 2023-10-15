@@ -52,6 +52,25 @@ func (d *DB) Set(key string, value string) error {
 	return nil
 }
 
+func (d *DB) SetBatch(m map[string]string) error {
+	query := `INSERT INTO urls (short_url, original_url) VALUES ($1, $2)`
+	tr, err := d.db.Begin()
+	if err != nil {
+		return fmt.Errorf("can't start transaction: %w", err)
+	}
+	for key, value := range m {
+		_, err = tr.ExecContext(context.Background(), query, key, value)
+		if err != nil {
+			tr.Rollback()
+			return fmt.Errorf("can't set url: %w", err)
+		}
+	}
+	err = tr.Commit()
+	if err != nil {
+		return fmt.Errorf("can't commit transaction: %w", err)
+	}
+	return nil
+}
 func (d *DB) Count() int {
 	var res int
 	err := d.db.QueryRowContext(context.Background(), "SELECT COUNT(*) FROM urls").Scan(&res)

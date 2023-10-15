@@ -34,12 +34,42 @@ func (h *Handler) RunServer() {
 
 	router.POST(`/`, h.URLShortener)
 	router.POST(`/api/shorten`, h.JSONURLShort)
+	router.POST(`/api/shorten/batch`, h.JSONURLShortBatch)
 	router.GET(`/:id`, h.URLGetID)
 	router.GET(`/ping`, h.CheckPing)
 
 	log.Fatal(router.Run(h.cnf.ServerAddr))
 
 	log.Println("Run server ", h.cnf.ServerAddr)
+}
+
+func (h *Handler) JSONURLShortBatch(c *gin.Context) {
+	var url []models.BatchSet
+
+	if err := json.NewDecoder(c.Request.Body).Decode(&url); err != nil {
+		c.Error(err)
+		c.AbortWithStatus(http.StatusNotFound)
+		return
+	}
+
+	res, err := h.logic.URLsShorter(url)
+	if err != nil {
+		c.Error(err)
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	resp, err := json.Marshal(&res)
+	if err != nil {
+		c.Error(err)
+		c.AbortWithStatus(http.StatusNotFound)
+		return
+	}
+
+	c.Header("Content-Type", "application/json")
+	c.Status(http.StatusCreated)
+
+	c.Writer.Write(resp)
 }
 
 func (h *Handler) JSONURLShort(c *gin.Context) {

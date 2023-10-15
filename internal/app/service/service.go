@@ -4,6 +4,7 @@ import (
 	"github.com/MorZLE/url-shortener/internal/app/logger"
 	"github.com/MorZLE/url-shortener/internal/config"
 	"github.com/MorZLE/url-shortener/internal/domains"
+	"github.com/MorZLE/url-shortener/internal/models"
 	"github.com/speps/go-hashids"
 )
 
@@ -17,6 +18,40 @@ func NewService(s domains.StorageInterface, cnf *config.Config) Service {
 type Service struct {
 	Storage domains.StorageInterface
 	Cnf     config.Config
+}
+
+func (s *Service) URLsShorter(data []models.BatchSet) ([]models.BatchGet, error) {
+
+	shUrls := make([]models.BatchGet, len(data))
+	shURStorage := make(map[string]string)
+	for i, url := range data {
+		ln := s.Storage.Count() + i + 1
+		hd := hashids.NewData()
+		h, err := hashids.NewWithData(hd)
+		if err != nil {
+			logger.Error("Ошибка NewWithData:", err)
+			return nil, err
+		}
+		shortURL, err := h.Encode([]int{ln})
+		if err != nil {
+			logger.Error("Ошибка Encode:", err)
+			return nil, err
+		}
+		shURStorage[shortURL] = url.OriginalURL
+		shortURL = s.Cnf.BaseURL + "/" + shortURL
+		shUrls = append(shUrls, models.BatchGet{
+			CorrelationId: url.CorrelationId,
+			ShortURL:      shortURL,
+		})
+	}
+
+	err := s.Storage.SetBatch(shURStorage)
+	if err != nil {
+		logger.Error("Ключ short URL занят:", err)
+		return nil, err
+	}
+
+	return shUrls, nil
 }
 
 func (s *Service) URLShorter(url string) (string, error) {

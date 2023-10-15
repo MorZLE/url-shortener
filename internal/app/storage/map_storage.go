@@ -60,6 +60,22 @@ func (s *Storage) Set(key string, value string) error {
 	return nil
 }
 
+func (s *Storage) SetBatch(m map[string]string) error {
+	for key, value := range m {
+		if s.M[key] != "" {
+			return consts.ErrKeyBusy
+		}
+		if s.Writer != nil {
+			err := s.Writer.WriteURL(&models.URLFile{ShortURL: key, OriginalURL: value})
+			if err != nil {
+				return err
+			}
+		}
+		s.M[key] = value
+	}
+	return nil
+}
+
 func (s *Storage) Get(key string) (string, error) {
 	if s.M[key] != "" {
 		return s.M[key], nil
