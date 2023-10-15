@@ -22,11 +22,13 @@ type Service struct {
 
 func (s *Service) URLsShorter(data []models.BatchSet) ([]models.BatchGet, error) {
 
-	data = data[2:]
 	var shUrls []models.BatchGet
 
 	shURStorage := make(map[string]string)
 	for i, url := range data {
+		if url.OriginalURL == "" {
+			continue
+		}
 		ln := s.Storage.Count() + i + 1
 		hd := hashids.NewData()
 		h, err := hashids.NewWithData(hd)
