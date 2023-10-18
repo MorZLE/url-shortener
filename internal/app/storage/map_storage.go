@@ -46,18 +46,18 @@ func (s *Storage) Ping() error {
 	return nil
 }
 
-func (s *Storage) Set(key string, value string) error {
+func (s *Storage) Set(key string, value string) (string, error) {
 	if s.M[key] != "" {
-		return consts.ErrKeyBusy
+		return "", consts.ErrKeyBusy
 	}
 	if s.Writer != nil {
 		err := s.Writer.WriteURL(&models.URLFile{ShortURL: key, OriginalURL: value})
 		if err != nil {
-			return err
+			return "", err
 		}
 	}
 	s.M[key] = value
-	return nil
+	return "", nil
 }
 
 func (s *Storage) SetBatch(m map[string]string) error {

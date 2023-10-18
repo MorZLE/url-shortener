@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	gzipmilddle "github.com/MorZLE/url-shortener/internal/app/gzip"
 	"github.com/MorZLE/url-shortener/internal/app/logger"
 	"github.com/MorZLE/url-shortener/internal/config"
@@ -89,17 +90,22 @@ func (h *Handler) JSONURLShort(c *gin.Context) {
 	}
 	shortURL, err := h.logic.URLShorter(longURL)
 	if err != nil {
-		c.Error(err)
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
+		if errors.Is(err, consts.ErrDuplicateURL) {
+			c.Status(http.StatusConflict)
+		} else {
+			c.Error(err)
+			c.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+	} else {
+		c.Status(http.StatusCreated)
 	}
-	h.ResponseValueJSON(c, models.URLShort{Result: shortURL})
 
-}
+	res := models.URLShort{
+		Result: shortURL,
+	}
 
-func (h *Handler) ResponseValueJSON(c *gin.Context, obj models.URLShort) {
-
-	resp, err := json.Marshal(&obj)
+	resp, err := json.Marshal(&res)
 	if err != nil {
 		c.Error(err)
 		c.AbortWithStatus(http.StatusNotFound)
@@ -107,7 +113,6 @@ func (h *Handler) ResponseValueJSON(c *gin.Context, obj models.URLShort) {
 	}
 
 	c.Header("Content-Type", "application/json")
-	c.Status(http.StatusCreated)
 
 	c.Writer.Write(resp)
 
@@ -127,14 +132,18 @@ func (h *Handler) URLShortener(c *gin.Context) {
 	shortURL, err := h.logic.URLShorter(string(body))
 
 	if err != nil {
-		c.Error(err)
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
+		if errors.Is(err, consts.ErrDuplicateURL) {
+			c.Status(http.StatusConflict)
+		} else {
+			c.Error(err)
+			c.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+	} else {
+		c.Status(http.StatusCreated)
 	}
 
 	c.Header("Content-Type", "text/plain")
-
-	c.Status(http.StatusCreated)
 
 	c.Writer.WriteString(shortURL)
 

@@ -1,8 +1,10 @@
 package service
 
 import (
+	"errors"
 	"github.com/MorZLE/url-shortener/internal/app/logger"
 	"github.com/MorZLE/url-shortener/internal/config"
+	"github.com/MorZLE/url-shortener/internal/consts"
 	"github.com/MorZLE/url-shortener/internal/domains"
 	"github.com/MorZLE/url-shortener/internal/models"
 	"github.com/speps/go-hashids"
@@ -70,10 +72,15 @@ func (s *Service) URLShorter(url string) (string, error) {
 		logger.Error("Ошибка Encode:", err)
 		return "", err
 	}
-	err = s.Storage.Set(shortURL, url)
+	dubleurl, err := s.Storage.Set(shortURL, url)
 	if err != nil {
-		logger.Error("Ключ short URL занят:", err)
-		return "", err
+		if errors.Is(err, consts.ErrDuplicateURL) {
+			return dubleurl, consts.ErrDuplicateURL
+		}
+		if errors.Is(err, consts.ErrKeyBusy) {
+			logger.Error("Ключ short URL занят:", err)
+			return "", err
+		}
 	}
 	shortURL = s.Cnf.BaseURL + "/" + shortURL
 	logger.ShortURL(shortURL)
