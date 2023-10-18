@@ -48,8 +48,8 @@ func (d *DB) Get(key string) (string, error) {
 
 func (d *DB) Set(key string, value string) (string, error) {
 
-	query := `INSERT INTO urls (short_url, original_url) ON CONFLICT (long_url_url) VALUES ($1, $2)`
-	_, err := d.db.ExecContext(context.Background(), query, key, value)
+	query := `INSERT INTO urls (short_url, original_url) VALUES ($1, $2)`
+	err := d.db.QueryRowContext(context.Background(), query, key, value).Err()
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
