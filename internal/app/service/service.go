@@ -72,10 +72,10 @@ func (s *Service) URLShorter(url string) (string, error) {
 		logger.Error("Ошибка Encode:", err)
 		return "", err
 	}
-	shortURL, err = s.Storage.Set(shortURL, url)
+	dubleurl, err := s.Storage.Set(shortURL, url)
 	if err != nil {
 		if errors.Is(err, consts.ErrDuplicateURL) {
-			shortURL = s.Cnf.BaseURL + "/" + shortURL
+			shortURL = s.Cnf.BaseURL + "/" + dubleurl
 			logger.ShortURL(shortURL)
 			return shortURL, consts.ErrDuplicateURL
 		}
