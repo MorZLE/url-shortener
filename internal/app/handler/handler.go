@@ -146,7 +146,7 @@ func (h *Handler) URLShortener(c *gin.Context) {
 	c.Header("Content-Type", "text/plain")
 
 	c.Writer.WriteString(shortURL)
-
+	log.Println("отправлен URL", shortURL)
 }
 
 func (h *Handler) URLGetID(c *gin.Context) {
