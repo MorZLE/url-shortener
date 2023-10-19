@@ -16,12 +16,13 @@ type HandlerInterface interface {
 
 //go:generate go run github.com/vektra/mockery/v2@v2.20.0 --name=StorageInterface
 type StorageInterface interface {
-	Set(key string, value string) (string, error)
+	Set(key string, value string) error
 	Get(key string) (string, error)
 	Count() int
 	Close() error
 	Ping() error
 	SetBatch(map[string]string) error
+	GetDuplicate(longURL string) (string, error)
 }
 
 //go:generate go run github.com/vektra/mockery/v2@v2.20.0 --name=ServiceInterface

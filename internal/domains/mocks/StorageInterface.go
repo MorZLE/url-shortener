@@ -61,6 +61,30 @@ func (_m *StorageInterface) Get(key string) (string, error) {
 	return r0, r1
 }
 
+// GetDuplicate provides a mock function with given fields: longURL
+func (_m *StorageInterface) GetDuplicate(longURL string) (string, error) {
+	ret := _m.Called(longURL)
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (string, error)); ok {
+		return rf(longURL)
+	}
+	if rf, ok := ret.Get(0).(func(string) string); ok {
+		r0 = rf(longURL)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(longURL)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Ping provides a mock function with given fields:
 func (_m *StorageInterface) Ping() error {
 	ret := _m.Called()
@@ -76,27 +100,17 @@ func (_m *StorageInterface) Ping() error {
 }
 
 // Set provides a mock function with given fields: key, value
-func (_m *StorageInterface) Set(key string, value string) (string, error) {
+func (_m *StorageInterface) Set(key string, value string) error {
 	ret := _m.Called(key, value)
 
-	var r0 string
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string) (string, error)); ok {
-		return rf(key, value)
-	}
-	if rf, ok := ret.Get(0).(func(string, string) string); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
 		r0 = rf(key, value)
 	} else {
-		r0 = ret.Get(0).(string)
+		r0 = ret.Error(0)
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(key, value)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
 // SetBatch provides a mock function with given fields: _a0

@@ -72,16 +72,17 @@ func (s *Service) URLShorter(url string) (string, error) {
 		logger.Error("Ошибка Encode:", err)
 		return "", err
 	}
-	dubleurl, err := s.Storage.Set(shortURL, url)
+	err = s.Storage.Set(shortURL, url)
 	if err != nil {
 		if errors.Is(err, consts.ErrDuplicateURL) {
-			shortURL = s.Cnf.BaseURL + "/" + dubleurl
-			logger.Info("Дубль" + shortURL)
+			shortURL, err = s.Storage.GetDuplicate(url)
+			if err != nil {
+				logger.Error("Ошибка GetDuplicate:", err)
+				return "", err
+			}
+			shortURL = s.Cnf.BaseURL + "/" + shortURL
+			logger.Info("Дубль URL: " + shortURL)
 			return shortURL, consts.ErrDuplicateURL
-		}
-		if errors.Is(err, consts.ErrKeyBusy) {
-			logger.Error("Ключ short URL занят:", err)
-			return "", err
 		}
 		return "", err
 	}

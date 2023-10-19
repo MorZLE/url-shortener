@@ -41,7 +41,6 @@ func (h *Handler) RunServer() {
 
 	log.Fatal(router.Run(h.cnf.ServerAddr))
 
-	log.Println("Run server ", h.cnf.ServerAddr)
 }
 
 func (h *Handler) JSONURLShortBatch(c *gin.Context) {

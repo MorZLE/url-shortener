@@ -46,24 +46,22 @@ func (d *DB) Get(key string) (string, error) {
 	return res, nil
 }
 
-func (d *DB) Set(key string, value string) (string, error) {
-
+func (d *DB) Set(key string, value string) error {
 	query := `INSERT INTO urls (short_url, original_url) VALUES ($1, $2)`
 	err := d.db.QueryRowContext(context.Background(), query, key, value).Err()
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == "23505" {
-				return d.GetDuplicate(value)
+				return consts.ErrDuplicateURL
 			}
 		}
 		if errors.Is(err, consts.ErrKeyBusy) {
-			return "", consts.ErrKeyBusy
+			return consts.ErrKeyBusy
 		}
-		return "", fmt.Errorf("can't set url: %w", err)
+		return fmt.Errorf("can't set url: %w", err)
 	}
-
-	return "", nil
+	return nil
 }
 
 func (d *DB) GetDuplicate(longURL string) (string, error) {
@@ -73,7 +71,7 @@ func (d *DB) GetDuplicate(longURL string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("can't get dublicate url: %w", err)
 	}
-	return value, consts.ErrDuplicateURL
+	return value, nil
 }
 
 func (d *DB) SetBatch(m map[string]string) error {
