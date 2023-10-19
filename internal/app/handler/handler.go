@@ -93,6 +93,7 @@ func (h *Handler) JSONURLShort(c *gin.Context) {
 		if errors.Is(err, consts.ErrDuplicateURL) {
 			c.Status(http.StatusConflict)
 		} else {
+			logger.Error("Неожиданная ошибка", err)
 			c.Error(err)
 			c.AbortWithStatus(http.StatusBadRequest)
 			return

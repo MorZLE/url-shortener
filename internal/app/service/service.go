@@ -83,6 +83,7 @@ func (s *Service) URLShorter(url string) (string, error) {
 			logger.Error("Ключ short URL занят:", err)
 			return "", err
 		}
+		return "", err
 	}
 	shortURL = s.Cnf.BaseURL + "/" + shortURL
 	logger.ShortURL(shortURL)

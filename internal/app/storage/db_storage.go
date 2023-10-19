@@ -60,6 +60,7 @@ func (d *DB) Set(key string, value string) (string, error) {
 		if errors.Is(err, consts.ErrKeyBusy) {
 			return "", consts.ErrKeyBusy
 		}
+		return "", fmt.Errorf("can't set url: %w", err)
 	}
 
 	return "", nil
