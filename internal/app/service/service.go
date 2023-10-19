@@ -1,7 +1,6 @@
 package service
 
 import (
-	"errors"
 	"github.com/MorZLE/url-shortener/internal/app/logger"
 	"github.com/MorZLE/url-shortener/internal/config"
 	"github.com/MorZLE/url-shortener/internal/consts"
@@ -61,29 +60,35 @@ func (s *Service) URLsShorter(data []models.BatchSet) ([]models.BatchGet, error)
 }
 
 func (s *Service) URLShorter(url string) (string, error) {
+	shortURL, err := s.Storage.GetDuplicate(url)
+	if err == nil {
+		shortURL = s.Cnf.BaseURL + "/" + shortURL
+		return shortURL, consts.ErrDuplicateURL
+	}
+
 	hd := hashids.NewData()
 	h, err := hashids.NewWithData(hd)
 	if err != nil {
 		logger.Error("Ошибка NewWithData:", err)
 		return "", err
 	}
-	shortURL, err := h.Encode([]int{s.Storage.Count()})
+	shortURL, err = h.Encode([]int{s.Storage.Count()})
 	if err != nil {
 		logger.Error("Ошибка Encode:", err)
 		return "", err
 	}
 	err = s.Storage.Set(shortURL, url)
 	if err != nil {
-		if errors.Is(err, consts.ErrDuplicateURL) {
-			shortURL, err = s.Storage.GetDuplicate(url)
-			if err != nil {
-				logger.Error("Ошибка GetDuplicate:", err)
-				return "", err
-			}
-			shortURL = s.Cnf.BaseURL + "/" + shortURL
-			logger.Info("Дубль URL: " + shortURL)
-			return shortURL, consts.ErrDuplicateURL
-		}
+		//if errors.Is(err, consts.ErrDuplicateURL) {
+		//	shortURL, err = s.Storage.GetDuplicate(url)
+		//	if err != nil {
+		//		logger.Error("Ошибка GetDuplicate:", err)
+		//		return "", err
+		//	}
+		//	shortURL = s.Cnf.BaseURL + "/" + shortURL
+		//	logger.Info("Дубль URL: " + shortURL)
+		//	return shortURL, consts.ErrDuplicateURL
+		//}
 		return "", err
 	}
 	shortURL = s.Cnf.BaseURL + "/" + shortURL

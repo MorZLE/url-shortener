@@ -4,8 +4,6 @@ import (
 	"go.uber.org/zap"
 	"log"
 	"net/http"
-	"strconv"
-	"time"
 )
 
 // Log будет доступен всему коду как синглтон.
@@ -58,21 +56,23 @@ func RequestLogger(h http.HandlerFunc) http.Handler {
 			Status:         http.StatusOK,
 		}
 
-		start := time.Now()
+		//start := time.Now()
 		h.ServeHTTP(loggingResponseWriter, r)
 
-		duration := time.Since(start)
+		//duration := time.Since(start)
 
-		Log.Info("Request",
-			zap.String("method", r.Method),
-			zap.String("uri", r.RequestURI),
-			zap.String("duration", strconv.FormatInt(int64(duration), 10)),
-		)
-		Log.Info("Response",
-			zap.Int("status", loggingResponseWriter.Status),
-			zap.String("method", r.Method),
-			zap.Int("content_size", loggingResponseWriter.Size),
-		)
+		//Log.Info("Request",
+		//	zap.String("Request", r.RequestURI),
+		//	zap.String("method", r.Method),
+		//	zap.String("uri", r.RequestURI),
+		//	zap.String("duration", strconv.FormatInt(int64(duration), 10)),
+		//)
+		//Log.Info("Response",
+		//	zap.String("Response", "Response"),
+		//	zap.Int("status", loggingResponseWriter.Status),
+		//	zap.String("method", r.Method),
+		//	zap.Int("content_size", loggingResponseWriter.Size),
+		//)
 	})
 }
 func Error(info string, err error) {

@@ -12,7 +12,6 @@ import (
 )
 
 func NewDB(cnf *config.Config) (DB, error) {
-
 	db, err := sql.Open("pgx", cnf.DatabaseDsn)
 	if err != nil {
 		return DB{}, fmt.Errorf("can't connect to database: %w", err)
@@ -28,6 +27,7 @@ func NewDB(cnf *config.Config) (DB, error) {
 	if err != nil {
 		return DB{}, fmt.Errorf("can't create table to database: %w", err)
 	}
+
 	return DB{db: db}, nil
 
 }
@@ -55,9 +55,6 @@ func (d *DB) Set(key string, value string) error {
 			if pgErr.Code == "23505" {
 				return consts.ErrDuplicateURL
 			}
-		}
-		if errors.Is(err, consts.ErrKeyBusy) {
-			return consts.ErrKeyBusy
 		}
 		return fmt.Errorf("can't set url: %w", err)
 	}
