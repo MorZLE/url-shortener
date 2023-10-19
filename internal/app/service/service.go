@@ -76,7 +76,7 @@ func (s *Service) URLShorter(url string) (string, error) {
 	if err != nil {
 		if errors.Is(err, consts.ErrDuplicateURL) {
 			shortURL = s.Cnf.BaseURL + "/" + dubleurl
-			logger.ShortURL(shortURL)
+			logger.Info("Дубль" + shortURL)
 			return shortURL, consts.ErrDuplicateURL
 		}
 		if errors.Is(err, consts.ErrKeyBusy) {

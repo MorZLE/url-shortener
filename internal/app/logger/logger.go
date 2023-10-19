@@ -82,3 +82,7 @@ func Error(info string, err error) {
 func ShortURL(url string) {
 	Log.Info("CreateShortURL", zap.String("url", url))
 }
+
+func Info(info string) {
+	Log.Info("INFO", zap.String("info", info))
+}
