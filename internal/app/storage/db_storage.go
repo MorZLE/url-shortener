@@ -18,7 +18,6 @@ func NewDB(cnf *config.Config) (DB, error) {
 	}
 	createTableQuery := `
 		CREATE TABLE IF NOT EXISTS urls (
-		    id SERIAL PRIMARY KEY,
 			short_url TEXT UNIQUE,
 			original_url TEXT UNIQUE
 		)
