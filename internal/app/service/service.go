@@ -59,6 +59,10 @@ func (s *Service) URLsShorter(data []models.BatchSet) ([]models.BatchGet, error)
 
 func (s *Service) URLShorter(url string) (string, error) {
 	shortURL, err := s.Generate(s.Storage.Count())
+	if err != nil {
+		logger.Error("Ошибка Generate:", err)
+		return "", err
+	}
 	err = s.Storage.Set(shortURL, url)
 	if err != nil {
 		if errors.Is(err, consts.ErrDuplicateURL) {
