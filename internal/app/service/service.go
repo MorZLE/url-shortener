@@ -8,7 +8,6 @@ import (
 	"github.com/MorZLE/url-shortener/internal/models"
 	"github.com/pkg/errors"
 	"github.com/speps/go-hashids"
-	"time"
 )
 
 func NewService(s domains.StorageInterface, cnf *config.Config) Service {
@@ -28,18 +27,17 @@ func (s *Service) URLsShorter(data []models.BatchSet) ([]models.BatchGet, error)
 	var shUrls []models.BatchGet
 
 	shURStorage := make(map[string]string)
-	for i, url := range data {
+	for _, url := range data {
 		if url.OriginalURL == "" {
 			continue
 		}
-		ln := s.Storage.Count() + i + 1
 		hd := hashids.NewData()
 		h, err := hashids.NewWithData(hd)
 		if err != nil {
 			logger.Error("Ошибка NewWithData:", err)
 			return nil, err
 		}
-		shortURL, err := h.Encode([]int{ln})
+		shortURL, err := h.Encode([]int{s.Storage.Count()})
 		if err != nil {
 			logger.Error("Ошибка Encode:", err)
 			return nil, err
@@ -69,9 +67,9 @@ func (s *Service) URLShorter(url string) (string, error) {
 		logger.Error("Ошибка NewWithData:", err)
 		return "", err
 	}
-	currentTime := time.Now()
-	millisecond := currentTime.UnixNano() / int64(time.Microsecond)
-	shortURL, err := h.Encode([]int{int(millisecond)})
+	//currentTime := time.Now()
+	//	millisecond := currentTime.UnixNano() / int64(time.Microsecond)
+	shortURL, err := h.Encode([]int{s.Storage.Count()})
 	if err != nil {
 		logger.Error("Ошибка Encode:", err)
 		return "", err
