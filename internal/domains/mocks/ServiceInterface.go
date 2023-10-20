@@ -26,6 +26,30 @@ func (_m *ServiceInterface) CheckPing() error {
 	return r0
 }
 
+// Generate provides a mock function with given fields: num
+func (_m *ServiceInterface) Generate(num int) (string, error) {
+	ret := _m.Called(num)
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(int) (string, error)); ok {
+		return rf(num)
+	}
+	if rf, ok := ret.Get(0).(func(int) string); ok {
+		r0 = rf(num)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(int) error); ok {
+		r1 = rf(num)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // URLGetID provides a mock function with given fields: url
 func (_m *ServiceInterface) URLGetID(url string) (string, error) {
 	ret := _m.Called(url)

@@ -23,26 +23,24 @@ type Service struct {
 }
 
 func (s *Service) URLsShorter(data []models.BatchSet) ([]models.BatchGet, error) {
-
 	var shUrls []models.BatchGet
-
+	num := s.Storage.Count()
 	shURStorage := make(map[string]string)
 	for _, url := range data {
 		if url.OriginalURL == "" {
 			continue
 		}
-		hd := hashids.NewData()
-		h, err := hashids.NewWithData(hd)
+		shortURL, err := s.Storage.GetDuplicate(url.OriginalURL)
 		if err != nil {
-			logger.Error("Ошибка NewWithData:", err)
-			return nil, err
+			shortURL, err = s.Generate(num)
+			num += 1
+			if err != nil {
+				logger.Error("Ошибка Encode:", err)
+				return nil, err
+			}
+			shURStorage[shortURL] = url.OriginalURL
 		}
-		shortURL, err := h.Encode([]int{s.Storage.Count()})
-		if err != nil {
-			logger.Error("Ошибка Encode:", err)
-			return nil, err
-		}
-		shURStorage[shortURL] = url.OriginalURL
+
 		shortURL = s.Cnf.BaseURL + "/" + shortURL
 		shUrls = append(shUrls, models.BatchGet{
 			CorrelationID: url.CorrelationID,
@@ -60,20 +58,7 @@ func (s *Service) URLsShorter(data []models.BatchSet) ([]models.BatchGet, error)
 }
 
 func (s *Service) URLShorter(url string) (string, error) {
-
-	hd := hashids.NewData()
-	h, err := hashids.NewWithData(hd)
-	if err != nil {
-		logger.Error("Ошибка NewWithData:", err)
-		return "", err
-	}
-	//currentTime := time.Now()
-	//	millisecond := currentTime.UnixNano() / int64(time.Microsecond)
-	shortURL, err := h.Encode([]int{s.Storage.Count()})
-	if err != nil {
-		logger.Error("Ошибка Encode:", err)
-		return "", err
-	}
+	shortURL, err := s.Generate(s.Storage.Count())
 	err = s.Storage.Set(shortURL, url)
 	if err != nil {
 		if errors.Is(err, consts.ErrDuplicateURL) {
@@ -90,6 +75,21 @@ func (s *Service) URLShorter(url string) (string, error) {
 	}
 	shortURL = s.Cnf.BaseURL + "/" + shortURL
 	logger.ShortURL(shortURL)
+	return shortURL, nil
+}
+
+func (s *Service) Generate(num int) (string, error) {
+	hd := hashids.NewData()
+	h, err := hashids.NewWithData(hd)
+	if err != nil {
+		logger.Error("Ошибка NewWithData:", err)
+		return "", err
+	}
+	shortURL, err := h.Encode([]int{num})
+	if err != nil {
+		logger.Error("Ошибка Encode:", err)
+		return "", err
+	}
 	return shortURL, nil
 }
 

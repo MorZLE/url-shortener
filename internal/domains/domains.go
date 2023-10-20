@@ -31,4 +31,5 @@ type ServiceInterface interface {
 	URLGetID(url string) (string, error)
 	CheckPing() error
 	URLsShorter(url []models.BatchSet) ([]models.BatchGet, error)
+	Generate(num int) (string, error)
 }
