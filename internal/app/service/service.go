@@ -12,19 +12,20 @@ import (
 
 func NewService(s domains.StorageInterface, cnf *config.Config) Service {
 	return Service{
-		Storage: s,
-		Cnf:     *cnf,
+		Storage:      s,
+		Cnf:          *cnf,
+		countStorage: s.Count(),
 	}
 }
 
 type Service struct {
-	Storage domains.StorageInterface
-	Cnf     config.Config
+	Storage      domains.StorageInterface
+	Cnf          config.Config
+	countStorage int
 }
 
 func (s *Service) URLsShorter(data []models.BatchSet) ([]models.BatchGet, error) {
 	var shUrls []models.BatchGet
-	num := s.Storage.Count()
 	shURStorage := make(map[string]string)
 	for _, url := range data {
 		if url.OriginalURL == "" {
@@ -32,8 +33,8 @@ func (s *Service) URLsShorter(data []models.BatchSet) ([]models.BatchGet, error)
 		}
 		shortURL, err := s.Storage.GetDuplicate(url.OriginalURL)
 		if err != nil {
-			shortURL, err = s.Generate(num)
-			num += 1
+			shortURL, err = s.Generate(s.countStorage)
+			s.countStorage++
 			if err != nil {
 				logger.Error("Ошибка Encode:", err)
 				return nil, err
@@ -58,7 +59,8 @@ func (s *Service) URLsShorter(data []models.BatchSet) ([]models.BatchGet, error)
 }
 
 func (s *Service) URLShorter(url string) (string, error) {
-	shortURL, err := s.Generate(s.Storage.Count())
+	shortURL, err := s.Generate(s.countStorage)
+	s.countStorage++
 	if err != nil {
 		logger.Error("Ошибка Generate:", err)
 		return "", err
