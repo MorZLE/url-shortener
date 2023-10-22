@@ -7,8 +7,22 @@ import (
 	"fmt"
 	"github.com/MorZLE/url-shortener/internal/config"
 	"github.com/MorZLE/url-shortener/internal/consts"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgx/v5/pgconn"
 	_ "github.com/jackc/pgx/v5/stdlib"
+)
+
+const (
+	createTableQuery = `CREATE TABLE IF NOT EXISTS urls (
+			short_url TEXT UNIQUE,
+			original_url TEXT UNIQUE
+		)`
+	insertQuery       = `INSERT INTO urls (short_url, original_url) VALUES ($1, $2)`
+	selectOriginalURL = `SELECT original_url FROM urls WHERE short_url = $1`
+	selectShortURL    = `SELECT short_url FROM urls WHERE original_url = $1`
+	selectCount       = `SELECT COUNT(*) FROM urls`
 )
 
 func NewDB(cnf *config.Config) (DB, error) {
@@ -16,15 +30,21 @@ func NewDB(cnf *config.Config) (DB, error) {
 	if err != nil {
 		return DB{}, fmt.Errorf("can't connect to database: %w", err)
 	}
-	createTableQuery := `
-		CREATE TABLE IF NOT EXISTS urls (
-			short_url TEXT UNIQUE,
-			original_url TEXT UNIQUE
-		)
-	`
-	_, err = db.ExecContext(context.Background(), createTableQuery)
+
+	driver, err := postgres.WithInstance(db, &postgres.Config{})
 	if err != nil {
-		return DB{}, fmt.Errorf("can't create table to database: %w", err)
+		return DB{}, fmt.Errorf("failed to create migrate driver, %w", err)
+	}
+
+	m, err := migrate.NewWithDatabaseInstance(
+		"file://migration",
+		"url", driver)
+	if err != nil {
+		return DB{}, fmt.Errorf("failed to migrate: %w", err)
+	}
+	err = m.Up()
+	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
+		return DB{}, fmt.Errorf("failed to do migrate %w", err)
 	}
 
 	return DB{db: db}, nil
@@ -37,7 +57,7 @@ type DB struct {
 
 func (d *DB) Get(key string) (string, error) {
 	var res string
-	err := d.db.QueryRowContext(context.Background(), "SELECT original_url FROM urls WHERE short_url = $1", key).Scan(&res)
+	err := d.db.QueryRowContext(context.Background(), selectOriginalURL, key).Scan(&res)
 	if err != nil {
 		return "", fmt.Errorf("can't get url: %w", err)
 	}
@@ -46,8 +66,7 @@ func (d *DB) Get(key string) (string, error) {
 }
 
 func (d *DB) Set(key string, value string) error {
-	query := `INSERT INTO urls (short_url, original_url) VALUES ($1, $2)`
-	err := d.db.QueryRowContext(context.Background(), query, key, value).Err()
+	err := d.db.QueryRowContext(context.Background(), insertQuery, key, value).Err()
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
@@ -62,8 +81,7 @@ func (d *DB) Set(key string, value string) error {
 
 func (d *DB) GetDuplicate(longURL string) (string, error) {
 	var value string
-	query := `SELECT short_url FROM urls WHERE original_url = $1`
-	err := d.db.QueryRowContext(context.Background(), query, longURL).Scan(&value)
+	err := d.db.QueryRowContext(context.Background(), selectShortURL, longURL).Scan(&value)
 	if err != nil {
 		return "", fmt.Errorf("can't get dublicate url: %w", err)
 	}
@@ -71,13 +89,12 @@ func (d *DB) GetDuplicate(longURL string) (string, error) {
 }
 
 func (d *DB) SetBatch(m map[string]string) error {
-	query := `INSERT INTO urls (short_url, original_url) VALUES ($1, $2)`
 	tr, err := d.db.Begin()
 	if err != nil {
 		return fmt.Errorf("can't start transaction: %w", err)
 	}
 	for key, value := range m {
-		_, err = tr.ExecContext(context.Background(), query, key, value)
+		_, err = tr.ExecContext(context.Background(), insertQuery, key, value)
 		if err != nil {
 			tr.Rollback()
 			return fmt.Errorf("can't set url: %w", err)
@@ -89,13 +106,13 @@ func (d *DB) SetBatch(m map[string]string) error {
 	}
 	return nil
 }
-func (d *DB) Count() int {
+func (d *DB) Count() (int, error) {
 	var res int
-	err := d.db.QueryRowContext(context.Background(), "SELECT COUNT(*) FROM urls").Scan(&res)
+	err := d.db.QueryRowContext(context.Background(), selectCount).Scan(&res)
 	if err != nil {
-		return 0
+		return 0, fmt.Errorf("can't count urls: %w", err)
 	}
-	return res
+	return res, nil
 
 }
 

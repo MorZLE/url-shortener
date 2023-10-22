@@ -18,7 +18,7 @@ type Handler interface {
 type Storage interface {
 	Set(key string, value string) error
 	Get(key string) (string, error)
-	Count() int
+	Count() (int, error)
 	Close() error
 	Ping() error
 	SetBatch(map[string]string) error

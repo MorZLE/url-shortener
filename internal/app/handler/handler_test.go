@@ -23,10 +23,6 @@ import (
 
 func TestAppHandler_URLGetID(t *testing.T) {
 
-	type field struct {
-		logic service.Service
-	}
-
 	type args struct {
 		w *httptest.ResponseRecorder
 		r *http.Request
@@ -39,25 +35,14 @@ func TestAppHandler_URLGetID(t *testing.T) {
 		name       string
 		args       args
 		wantStatus int
-		field      field
 	}{
 		{
 			name: "Test case 1",
-
 			args: args{
 				w: &httptest.ResponseRecorder{},
 				r: httptest.NewRequest(http.MethodGet, "http://127.0.0.1:8080/AWcwasd", nil),
 			},
-			field: field{
-				logic: service.Service{
-					Storage: &storage.Storage{
-						M: map[string]string{
-							"AWcwasd": "http://127.0.0.1:8080/site.com",
-						},
-					},
-					Cnf: cnf,
-				},
-			},
+
 			wantStatus: http.StatusTemporaryRedirect,
 		},
 		{
@@ -67,35 +52,6 @@ func TestAppHandler_URLGetID(t *testing.T) {
 				w: &httptest.ResponseRecorder{},
 				r: httptest.NewRequest(http.MethodGet, "http://127.0.0.1:8080/wadaw", nil),
 			},
-			field: field{
-				logic: service.Service{
-					Storage: &storage.Storage{
-						M: map[string]string{
-							"http://127.0.0.1/sefsfvce": "http://127.0.0.1/site.com",
-						},
-					},
-					Cnf: cnf,
-				},
-			},
-			wantStatus: http.StatusBadRequest,
-		},
-		{
-			name: "Test case 3",
-
-			args: args{
-				w: &httptest.ResponseRecorder{},
-				r: httptest.NewRequest(http.MethodGet, "http://127.0.0.1:8080/gr43ge34g34t3g345g34g", nil),
-			},
-			field: field{
-				logic: service.Service{
-					Storage: &storage.Storage{
-						M: map[string]string{
-							"http://127.0.0.1:8080/sefsfvce": "http://127.0.0.1:8080/site.com",
-						},
-					},
-					Cnf: cnf,
-				},
-			},
 			wantStatus: http.StatusBadRequest,
 		},
 	}
@@ -104,10 +60,19 @@ func TestAppHandler_URLGetID(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			r := gin.Default()
 
+			st, err := storage.NewStorage(&cnf)
+			st.Set("AWcwasd", "http://127.0.0.1:8080/site.com")
+
+			if err != nil {
+				log.Fatal(err)
+			}
+			ser := service.NewService(st, &cnf)
+
 			h := &Handler{
-				logic: &tt.field.logic,
+				logic: &ser,
 				cnf:   cnf,
 			}
+
 			r.GET(`/:id`, h.URLGetID)
 			r.ServeHTTP(tt.args.w, tt.args.r)
 			assert.Equal(t, tt.args.w.Code, tt.wantStatus)
@@ -116,10 +81,6 @@ func TestAppHandler_URLGetID(t *testing.T) {
 }
 
 func TestAppHandler_URLShortener(t *testing.T) {
-
-	type field struct {
-		logic service.Service
-	}
 
 	type args struct {
 		w *httptest.ResponseRecorder
@@ -134,7 +95,6 @@ func TestAppHandler_URLShortener(t *testing.T) {
 		name       string
 		args       args
 		wantStatus int
-		field      field
 	}{
 		{
 			name: "Test case 1",
@@ -143,14 +103,7 @@ func TestAppHandler_URLShortener(t *testing.T) {
 				w: httptest.NewRecorder(),
 				r: httptest.NewRequest(http.MethodPost, "http://localhost:8080/", strings.NewReader("https://practicum.yandex.ru/")),
 			},
-			field: field{
-				logic: service.Service{
-					Storage: &storage.Storage{
-						M: map[string]string{},
-					},
-					Cnf: cnf,
-				},
-			},
+
 			wantStatus: http.StatusCreated,
 		},
 		{
@@ -160,14 +113,7 @@ func TestAppHandler_URLShortener(t *testing.T) {
 				w: httptest.NewRecorder(),
 				r: httptest.NewRequest(http.MethodPost, "http://localhost:8080/", strings.NewReader(" -3040svgbfb-0o-ow4gm'xmfbzdbdbzdb")),
 			},
-			field: field{
-				logic: service.Service{
-					Storage: &storage.Storage{
-						M: map[string]string{},
-					},
-					Cnf: cnf,
-				},
-			},
+
 			wantStatus: http.StatusCreated,
 		},
 	}
@@ -175,10 +121,18 @@ func TestAppHandler_URLShortener(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			r := gin.Default()
 
+			st, err := storage.NewStorage(&cnf)
+
+			if err != nil {
+				log.Fatal(err)
+			}
+			ser := service.NewService(st, &cnf)
+
 			h := &Handler{
-				logic: &tt.field.logic,
+				logic: &ser,
 				cnf:   cnf,
 			}
+
 			r.POST(`/`, h.URLShortener)
 			r.ServeHTTP(tt.args.w, tt.args.r)
 			assert.Equal(t, tt.args.w.Code, tt.wantStatus)
@@ -187,9 +141,6 @@ func TestAppHandler_URLShortener(t *testing.T) {
 }
 
 func TestHandler_JSONURLShort(t *testing.T) {
-	type fields struct {
-		logic service.Service
-	}
 
 	type args struct {
 		w *httptest.ResponseRecorder
@@ -204,8 +155,8 @@ func TestHandler_JSONURLShort(t *testing.T) {
 	t3, _ := json.Marshal(&models.URLShort{Result: "https://vk.com/"})
 
 	tests := []struct {
-		name       string
-		fields     fields
+		name string
+
 		args       args
 		wantStatus int
 	}{
@@ -215,14 +166,7 @@ func TestHandler_JSONURLShort(t *testing.T) {
 				w: httptest.NewRecorder(),
 				r: httptest.NewRequest(http.MethodPost, "http://localhost:8080/api/shorten", bytes.NewBuffer(t1)),
 			},
-			fields: fields{
-				logic: service.Service{
-					Storage: &storage.Storage{
-						M: map[string]string{},
-					},
-					Cnf: cnf,
-				},
-			},
+
 			wantStatus: http.StatusCreated,
 		},
 		{
@@ -231,14 +175,7 @@ func TestHandler_JSONURLShort(t *testing.T) {
 				w: httptest.NewRecorder(),
 				r: httptest.NewRequest(http.MethodPost, "http://localhost:8080/api/shorten", bytes.NewBuffer(t2)),
 			},
-			fields: fields{
-				logic: service.Service{
-					Storage: &storage.Storage{
-						M: map[string]string{},
-					},
-					Cnf: cnf,
-				},
-			},
+
 			wantStatus: http.StatusCreated,
 		},
 		{
@@ -247,14 +184,7 @@ func TestHandler_JSONURLShort(t *testing.T) {
 				w: httptest.NewRecorder(),
 				r: httptest.NewRequest(http.MethodPost, "http://localhost:8080/api/shorten", bytes.NewBuffer(t3)),
 			},
-			fields: fields{
-				logic: service.Service{
-					Storage: &storage.Storage{
-						M: map[string]string{},
-					},
-					Cnf: cnf,
-				},
-			},
+
 			wantStatus: http.StatusBadRequest,
 		},
 	}
@@ -262,10 +192,18 @@ func TestHandler_JSONURLShort(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			r := gin.Default()
 
+			st, err := storage.NewStorage(&cnf)
+
+			if err != nil {
+				log.Fatal(err)
+			}
+			ser := service.NewService(st, &cnf)
+
 			h := &Handler{
-				logic: &tt.fields.logic,
+				logic: &ser,
 				cnf:   cnf,
 			}
+
 			r.POST(`/api/shorten`, h.JSONURLShort)
 			tt.args.r.Header.Set("Content-Type", "application/json")
 			tt.args.r.Header.Set("Accept", "application/json")
@@ -285,7 +223,7 @@ func TestHandler_JSONURLShortGzip(t *testing.T) {
 	type fields struct {
 		mckL mckL
 		mckS mckS
-		Cnf  config.Config
+		cnf  config.Config
 	}
 
 	type args struct {
@@ -326,7 +264,7 @@ func TestHandler_JSONURLShortGzip(t *testing.T) {
 				mckS: func(r *mocks.Storage) {
 					r.On("Set", "/qwd3212d").Return(nil)
 				},
-				Cnf: cnf,
+				cnf: cnf,
 			},
 			wantStatus:   http.StatusCreated,
 			wantShortURL: w1,

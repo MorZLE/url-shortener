@@ -59,21 +59,12 @@ func (h *Handler) JSONURLShortBatch(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusCreated, res)
-	//resp, err := json.Marshal(&res)
-	//if err != nil {
-	//	c.Error(err)
-	//	c.AbortWithStatus(http.StatusNotFound)
-	//	return
-	//}
-	//
-	//c.Header("Content-Type", "application/json")
-	//c.Status(http.StatusCreated)
-	//
-	//c.Writer.Write(resp)
 }
 
 func (h *Handler) JSONURLShort(c *gin.Context) {
 	var url models.URLLong
+
+	var status int = http.StatusCreated
 
 	if err := json.NewDecoder(c.Request.Body).Decode(&url); err != nil {
 		c.Error(err)
@@ -90,33 +81,19 @@ func (h *Handler) JSONURLShort(c *gin.Context) {
 	shortURL, err := h.logic.URLShorter(longURL)
 	if err != nil {
 		if errors.Is(err, consts.ErrDuplicateURL) {
-			c.Status(http.StatusConflict)
+			status = http.StatusConflict
 		} else {
 			logger.Error("Неожиданная ошибка", err)
 			c.Error(err)
 			c.AbortWithStatus(http.StatusBadRequest)
 			return
 		}
-	} else {
-		c.Status(http.StatusCreated)
 	}
-
 	res := models.URLShort{
 		Result: shortURL,
 	}
 
-	c.JSON(http.StatusCreated, res)
-	//resp, err := json.Marshal(&res)
-	//if err != nil {
-	//	c.Error(err)
-	//	c.AbortWithStatus(http.StatusNotFound)
-	//	return
-	//}
-	//
-	//c.Header("Content-Type", "application/json")
-	//
-	//c.Writer.Write(resp)
-
+	c.JSON(status, res)
 }
 
 func (h *Handler) URLShortener(c *gin.Context) {
@@ -173,13 +150,3 @@ func (h *Handler) CheckPing(c *gin.Context) {
 	}
 	c.Status(http.StatusOK)
 }
-
-//
-//func (h *Handler) Cookie(c *gin.Context) string {
-//	cookie, err := c.Cookie("auth")
-//	if err != nil {
-//		c.SetCookie("auth", h.logic.GenCookie(), 3600, "/", "", false, true)
-//
-//	}
-//	return cookie
-//}
