@@ -6,7 +6,7 @@ import (
 	"github.com/MorZLE/url-shortener/internal/domains"
 )
 
-func NewStorage(cnf *config.Config) (domains.StorageInterface, error) {
+func NewStorage(cnf *config.Config) (domains.Storage, error) {
 	if cnf.DatabaseDsn != "" {
 		db, err := NewDB(cnf)
 		if err != nil {

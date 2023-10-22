@@ -30,8 +30,6 @@ func TestAppHandler_URLGetID(t *testing.T) {
 	type args struct {
 		w *httptest.ResponseRecorder
 		r *http.Request
-
-		//	m mockFn
 	}
 	cnf := config.Config{
 		BaseURL:    "http://127.0.0.1:8080",
@@ -281,8 +279,8 @@ func TestHandler_JSONURLShort(t *testing.T) {
 
 func TestHandler_JSONURLShortGzip(t *testing.T) {
 
-	type mckL func(r *mocks.ServiceInterface)
-	type mckS func(r *mocks.StorageInterface)
+	type mckL func(r *mocks.Service)
+	type mckS func(r *mocks.Storage)
 
 	type fields struct {
 		mckL mckL
@@ -322,10 +320,10 @@ func TestHandler_JSONURLShortGzip(t *testing.T) {
 				r: httptest.NewRequest(http.MethodPost, "http://localhost:8080/api/shorten", bytes.NewBuffer(buf1.Bytes())),
 			},
 			fields: fields{
-				mckL: func(r *mocks.ServiceInterface) {
+				mckL: func(r *mocks.Service) {
 					r.On("URLShorter", "https://practicum.yandex.ru/").Return(w1, nil)
 				},
-				mckS: func(r *mocks.StorageInterface) {
+				mckS: func(r *mocks.Storage) {
 					r.On("Set", "/qwd3212d").Return(nil)
 				},
 				Cnf: cnf,
@@ -339,7 +337,7 @@ func TestHandler_JSONURLShortGzip(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			r := gin.Default()
-			m := mocks.NewServiceInterface(t)
+			m := mocks.NewService(t)
 
 			tt.fields.mckL(m)
 

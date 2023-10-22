@@ -10,7 +10,7 @@ import (
 	"github.com/speps/go-hashids"
 )
 
-func NewService(s domains.StorageInterface, cnf *config.Config) Service {
+func NewService(s domains.Storage, cnf *config.Config) Service {
 	return Service{
 		Storage:      s,
 		Cnf:          *cnf,
@@ -19,7 +19,7 @@ func NewService(s domains.StorageInterface, cnf *config.Config) Service {
 }
 
 type Service struct {
-	Storage      domains.StorageInterface
+	Storage      domains.Storage
 	Cnf          config.Config
 	countStorage int
 }
@@ -111,4 +111,8 @@ func (s *Service) URLGetID(url string) (string, error) {
 
 func (s *Service) CheckPing() error {
 	return s.Storage.Ping()
+}
+
+func (s *Service) GenCookie() string {
+	return ""
 }

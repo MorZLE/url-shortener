@@ -6,11 +6,8 @@ import (
 	"net/http"
 )
 
-// Log будет доступен всему коду как синглтон.
+var mylog *zap.Logger = zap.NewNop()
 
-var Log *zap.Logger = zap.NewNop()
-
-// Initialize инициализирует синглтон логера с необходимым уровнем логирования.
 func Initialize() {
 	// преобразуем текстовый уровень логирования в zap.AtomicLevel
 	lvl, err := zap.ParseAtomicLevel("info")
@@ -27,7 +24,7 @@ func Initialize() {
 		log.Fatal(err)
 	}
 	// устанавливаем синглтон
-	Log = zl
+	mylog = zl
 }
 
 type LoggingResponseWriter struct {
@@ -47,42 +44,15 @@ func (w *LoggingResponseWriter) Write(b []byte) (int, error) {
 	return size, err
 }
 
-// RequestLogger — middleware-логер для входящих HTTP-запросов.
-func RequestLogger(h http.HandlerFunc) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-		loggingResponseWriter := &LoggingResponseWriter{
-			ResponseWriter: w,
-			Status:         http.StatusOK,
-		}
-
-		//start := time.Now()
-		h.ServeHTTP(loggingResponseWriter, r)
-
-		//duration := time.Since(start)
-
-		//Log.Info("Request",
-		//	zap.String("Request", r.RequestURI),
-		//	zap.String("method", r.Method),
-		//	zap.String("uri", r.RequestURI),
-		//	zap.String("duration", strconv.FormatInt(int64(duration), 10)),
-		//)
-		//Log.Info("Response",
-		//	zap.String("Response", "Response"),
-		//	zap.Int("status", loggingResponseWriter.Status),
-		//	zap.String("method", r.Method),
-		//	zap.Int("content_size", loggingResponseWriter.Size),
-		//)
-	})
-}
 func Error(info string, err error) {
-	Log.Info(info, zap.Error(err))
+	mylog.Info(info, zap.Error(err))
 }
 
 func ShortURL(url string) {
-	Log.Info("CreateShortURL", zap.String("url", url))
+	mylog.Info("CreateShortURL", zap.String("url", url))
+
 }
 
 func Info(info string) {
-	Log.Info("INFO", zap.String("info", info))
+	mylog.Info("INFO", zap.String("info", info))
 }

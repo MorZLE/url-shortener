@@ -16,7 +16,7 @@ func (s *Storage) Ping() error {
 
 func (s *Storage) Set(key string, value string) error {
 	if s.M[key] != "" {
-		return consts.ErrKeyBusy
+		return consts.ErrAlreadyExists
 	}
 	if s.Writer != nil {
 		err := s.Writer.WriteURL(&models.URLFile{ShortURL: key, OriginalURL: value})
@@ -31,7 +31,7 @@ func (s *Storage) Set(key string, value string) error {
 func (s *Storage) SetBatch(m map[string]string) error {
 	for key, value := range m {
 		if s.M[key] != "" {
-			return consts.ErrKeyBusy
+			return consts.ErrAlreadyExists
 		}
 		if s.Writer != nil {
 			err := s.Writer.WriteURL(&models.URLFile{ShortURL: key, OriginalURL: value})
@@ -45,8 +45,8 @@ func (s *Storage) SetBatch(m map[string]string) error {
 }
 
 func (s *Storage) Get(key string) (string, error) {
-	if s.M[key] != "" {
-		return s.M[key], nil
+	if v, ok := s.M[key]; ok {
+		return v, nil
 	}
 	return "", consts.ErrNotFound
 }
