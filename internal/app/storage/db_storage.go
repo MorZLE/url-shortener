@@ -10,7 +10,7 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/lib/pq"
 )
 
 const (
@@ -67,7 +67,7 @@ func (d *DB) Get(key string) (string, error) {
 func (d *DB) Set(key string, value string) error {
 	err := d.db.QueryRowContext(context.Background(), insertQuery, key, value).Err()
 	if err != nil {
-		var pgErr *pgconn.PgError
+		var pgErr *pq.Error
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == "23505" {
 				return consts.ErrDuplicateURL
