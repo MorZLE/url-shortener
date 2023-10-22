@@ -41,7 +41,7 @@ func (s *Service) URLsShorter(data []models.BatchSet) ([]models.BatchGet, error)
 		}
 		shortURL, err := s.storage.GetDuplicate(url.OriginalURL)
 		if err != nil {
-			shortURL, err := s.Generate(int(s.countStorage.Load()))
+			shortURL, err = s.Generate(int(s.countStorage.Load()))
 			s.countStorage.Add(1)
 			if err != nil {
 				logger.Error("Error Encode:", err)

@@ -11,7 +11,6 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgx/v5/pgconn"
-	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 const (
@@ -26,7 +25,7 @@ const (
 )
 
 func NewDB(cnf *config.Config) (DB, error) {
-	db, err := sql.Open("pgx", cnf.DatabaseDsn)
+	db, err := sql.Open("postgres", cnf.DatabaseDsn)
 	if err != nil {
 		return DB{}, fmt.Errorf("can't connect to database: %w", err)
 	}
