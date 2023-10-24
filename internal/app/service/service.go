@@ -129,8 +129,9 @@ func (s *Service) GetAllURLUsers(id string) ([]models.AllURLs, error) {
 		return nil, fmt.Errorf("error GetAllURL: %s", err)
 	}
 	for k, v := range urls {
+		shortURL := s.cnf.BaseURL + "/" + k
 		resurls = append(resurls, models.AllURLs{
-			ShortURL:    k,
+			ShortURL:    shortURL,
 			OriginalURL: v,
 		})
 	}
