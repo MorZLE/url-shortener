@@ -2,6 +2,8 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	gzipmilddle "github.com/MorZLE/url-shortener/internal/app/gzip"
 	"github.com/MorZLE/url-shortener/internal/app/logger"
 	"github.com/MorZLE/url-shortener/internal/config"
@@ -15,17 +17,16 @@ import (
 	"net/http"
 )
 
-func NewHandler(lg domains.ServiceInterface, cnf *config.Config) Handler {
+func NewHandler(lg domains.Service, cnf *config.Config) Handler {
 	return Handler{logic: lg, cnf: *cnf}
 }
 
 type Handler struct {
-	logic domains.ServiceInterface
+	logic domains.Service
 	cnf   config.Config
 }
 
 func (h *Handler) RunServer() {
-	logger.Initialize()
 
 	router := gin.Default()
 	router.Use(gzipmilddle.GzipMiddleware())
@@ -40,13 +41,12 @@ func (h *Handler) RunServer() {
 
 	log.Fatal(router.Run(h.cnf.ServerAddr))
 
-	log.Println("Run server ", h.cnf.ServerAddr)
 }
 
 func (h *Handler) JSONURLShortBatch(c *gin.Context) {
 	var url []models.BatchSet
 
-	if err := json.NewDecoder(c.Request.Body).Decode(&url); err != nil {
+	if err := c.Bind(&url); err != nil {
 		c.Error(err)
 		c.AbortWithStatus(http.StatusNotFound)
 		return
@@ -58,22 +58,13 @@ func (h *Handler) JSONURLShortBatch(c *gin.Context) {
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
-
-	resp, err := json.Marshal(&res)
-	if err != nil {
-		c.Error(err)
-		c.AbortWithStatus(http.StatusNotFound)
-		return
-	}
-
-	c.Header("Content-Type", "application/json")
-	c.Status(http.StatusCreated)
-
-	c.Writer.Write(resp)
+	c.JSON(http.StatusCreated, res)
 }
 
 func (h *Handler) JSONURLShort(c *gin.Context) {
 	var url models.URLLong
+
+	var status int = http.StatusCreated
 
 	if err := json.NewDecoder(c.Request.Body).Decode(&url); err != nil {
 		c.Error(err)
@@ -89,28 +80,20 @@ func (h *Handler) JSONURLShort(c *gin.Context) {
 	}
 	shortURL, err := h.logic.URLShorter(longURL)
 	if err != nil {
-		c.Error(err)
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
+		if errors.Is(err, consts.ErrDuplicateURL) {
+			status = http.StatusConflict
+		} else {
+			logger.Error("Неожиданная ошибка", err)
+			c.Error(err)
+			c.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
 	}
-	h.ResponseValueJSON(c, models.URLShort{Result: shortURL})
-
-}
-
-func (h *Handler) ResponseValueJSON(c *gin.Context, obj models.URLShort) {
-
-	resp, err := json.Marshal(&obj)
-	if err != nil {
-		c.Error(err)
-		c.AbortWithStatus(http.StatusNotFound)
-		return
+	res := models.URLShort{
+		Result: shortURL,
 	}
 
-	c.Header("Content-Type", "application/json")
-	c.Status(http.StatusCreated)
-
-	c.Writer.Write(resp)
-
+	c.JSON(status, res)
 }
 
 func (h *Handler) URLShortener(c *gin.Context) {
@@ -123,21 +106,25 @@ func (h *Handler) URLShortener(c *gin.Context) {
 		return
 	}
 
-	log.Println("получен URL", string(body))
+	logger.Info(fmt.Sprintf("получен URL %s", string(body)))
 	shortURL, err := h.logic.URLShorter(string(body))
 
 	if err != nil {
-		c.Error(err)
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
+		if errors.Is(err, consts.ErrDuplicateURL) {
+			c.Status(http.StatusConflict)
+		} else {
+			c.Error(err)
+			c.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+	} else {
+		c.Status(http.StatusCreated)
 	}
 
 	c.Header("Content-Type", "text/plain")
 
-	c.Status(http.StatusCreated)
-
 	c.Writer.WriteString(shortURL)
-
+	logger.Info(fmt.Sprintf("отправлен URL %s", shortURL))
 }
 
 func (h *Handler) URLGetID(c *gin.Context) {
@@ -149,7 +136,7 @@ func (h *Handler) URLGetID(c *gin.Context) {
 		return
 	}
 
-	log.Println("отправлен url:", url)
+	logger.Info(fmt.Sprintf("отправлен url: %s", url))
 
 	c.Header("Location", url)
 	c.Status(http.StatusTemporaryRedirect)

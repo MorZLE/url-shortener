@@ -18,8 +18,6 @@ type Config struct {
 	DatabaseDsn string
 }
 
-//const BaseFile = "tmp/short-url-db.json"
-
 func ParseFlags(p *Config) *Config {
 
 	flag.StringVar(&p.ServerAddr, "a", ":8080", "address and port to run server")
