@@ -20,7 +20,7 @@ const (
             user_id TEXT 
 		)`
 	insertQuery       = `INSERT INTO urls (short_url, original_url, user_id) VALUES ($1, $2, $3)`
-	selectOriginalURL = `SELECT original_url FROM urls WHERE short_url = $1 and user_id = $2`
+	selectOriginalURL = `SELECT original_url FROM urls WHERE short_url = $1 `
 	selectShortURL    = `SELECT short_url FROM urls WHERE original_url = $1 `
 	selectCount       = `SELECT COUNT(*) FROM urls`
 	selectAllUsersURL = `SELECT short_url, original_url FROM urls WHERE user_id = $1`
@@ -56,9 +56,9 @@ type DB struct {
 	db *sql.DB
 }
 
-func (d *DB) Get(id, key string) (string, error) {
+func (d *DB) Get(key string) (string, error) {
 	var res string
-	err := d.db.QueryRowContext(context.Background(), selectOriginalURL, key, id).Scan(&res)
+	err := d.db.QueryRowContext(context.Background(), selectOriginalURL, key).Scan(&res)
 	if err != nil {
 		return "", fmt.Errorf("can't get url: %w", err)
 	}
@@ -115,6 +115,11 @@ func (d *DB) GetAllURL(id string) (map[string]string, error) {
 		return m, fmt.Errorf("can't get all urls: %w", err)
 	}
 	for rows.Next() {
+		err := rows.Err()
+		if err != nil {
+			return m, fmt.Errorf("can't get all urls: %w", err)
+
+		}
 		var key, value string
 		err = rows.Scan(&key, &value)
 		if err != nil {

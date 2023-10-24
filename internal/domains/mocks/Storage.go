@@ -47,23 +47,23 @@ func (_m *Storage) Count() (int, error) {
 	return r0, r1
 }
 
-// Get provides a mock function with given fields: id, key
-func (_m *Storage) Get(id string, key string) (string, error) {
-	ret := _m.Called(id, key)
+// Get provides a mock function with given fields: key
+func (_m *Storage) Get(key string) (string, error) {
+	ret := _m.Called(key)
 
 	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string) (string, error)); ok {
-		return rf(id, key)
+	if rf, ok := ret.Get(0).(func(string) (string, error)); ok {
+		return rf(key)
 	}
-	if rf, ok := ret.Get(0).(func(string, string) string); ok {
-		r0 = rf(id, key)
+	if rf, ok := ret.Get(0).(func(string) string); ok {
+		r0 = rf(key)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(id, key)
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(key)
 	} else {
 		r1 = ret.Error(1)
 	}

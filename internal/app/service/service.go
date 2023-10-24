@@ -109,8 +109,8 @@ func (s *Service) Generate(num int) (string, error) {
 	return shortURL, nil
 }
 
-func (s *Service) URLGetID(id string, url string) (string, error) {
-	val, err := s.storage.Get(id, url)
+func (s *Service) URLGetID(url string) (string, error) {
+	val, err := s.storage.Get(url)
 	if err != nil {
 		return "", err
 	}
@@ -126,7 +126,7 @@ func (s *Service) GetAllURLUsers(id string) ([]models.AllURLs, error) {
 		if errors.Is(err, consts.ErrDuplicateURL) {
 			return nil, consts.ErrDuplicateURL
 		}
-		return nil, fmt.Errorf("Error GetAllURL: %s", err)
+		return nil, fmt.Errorf("error GetAllURL: %s", err)
 	}
 	for k, v := range urls {
 		resurls = append(resurls, models.AllURLs{

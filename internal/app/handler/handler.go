@@ -135,9 +135,9 @@ func (h *Handler) URLShortener(c *gin.Context) {
 
 func (h *Handler) URLGetID(c *gin.Context) {
 
-	id := h.Cookie(c)
+	id := c.Param("id")
 
-	url, err := h.logic.URLGetID(id, c.Param("id"))
+	url, err := h.logic.URLGetID(id)
 	if err != nil {
 		c.Error(err)
 		c.AbortWithStatus(http.StatusBadRequest)

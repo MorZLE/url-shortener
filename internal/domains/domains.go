@@ -20,7 +20,7 @@ type Handler interface {
 //go:generate go run github.com/vektra/mockery/v2@v2.20.0 --name=Storage
 type Storage interface {
 	Set(id, key, value string) error
-	Get(id, key string) (string, error)
+	Get(key string) (string, error)
 	Count() (int, error)
 	Close() error
 	Ping() error
@@ -32,7 +32,7 @@ type Storage interface {
 //go:generate go run github.com/vektra/mockery/v2@v2.20.0 --name=Service
 type Service interface {
 	URLShorter(id, url string) (string, error)
-	URLGetID(id, url string) (string, error)
+	URLGetID(url string) (string, error)
 	CheckPing() error
 	URLsShorter(id string, url []models.BatchSet) ([]models.BatchGet, error)
 	Generate(num int) (string, error)

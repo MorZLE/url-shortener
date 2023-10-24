@@ -55,10 +55,13 @@ func (s *Storage) GetAllURL(id string) (map[string]string, error) {
 	return nil, consts.ErrAlreadyExists
 }
 
-func (s *Storage) Get(id string, key string) (string, error) {
-	if v, ok := s.m[id][key]; ok {
-		return v, nil
+func (s *Storage) Get(key string) (string, error) {
+	for _, v := range s.m {
+		if v, ok := v[key]; ok {
+			return v, nil
+		}
 	}
+
 	return "", consts.ErrNotFound
 }
 

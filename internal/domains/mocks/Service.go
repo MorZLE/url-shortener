@@ -90,23 +90,23 @@ func (_m *Service) GetAllURLUsers(id string) ([]models.AllURLs, error) {
 	return r0, r1
 }
 
-// URLGetID provides a mock function with given fields: id, url
-func (_m *Service) URLGetID(id string, url string) (string, error) {
-	ret := _m.Called(id, url)
+// URLGetID provides a mock function with given fields: url
+func (_m *Service) URLGetID(url string) (string, error) {
+	ret := _m.Called(url)
 
 	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string) (string, error)); ok {
-		return rf(id, url)
+	if rf, ok := ret.Get(0).(func(string) (string, error)); ok {
+		return rf(url)
 	}
-	if rf, ok := ret.Get(0).(func(string, string) string); ok {
-		r0 = rf(id, url)
+	if rf, ok := ret.Get(0).(func(string) string); ok {
+		r0 = rf(url)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(id, url)
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(url)
 	} else {
 		r1 = ret.Error(1)
 	}
