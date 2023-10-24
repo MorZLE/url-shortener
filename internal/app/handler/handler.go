@@ -38,6 +38,7 @@ func (h *Handler) RunServer() {
 	router.POST(`/api/shorten/batch`, h.JSONURLShortBatch)
 	router.GET(`/:id`, h.URLGetID)
 	router.GET(`/ping`, h.CheckPing)
+	router.GET(`/api/user/urls`, h.URLGetCookie)
 
 	log.Fatal(router.Run(h.cnf.ServerAddr))
 
@@ -46,13 +47,15 @@ func (h *Handler) RunServer() {
 func (h *Handler) JSONURLShortBatch(c *gin.Context) {
 	var url []models.BatchSet
 
+	id := h.Cookie(c)
+
 	if err := c.Bind(&url); err != nil {
 		c.Error(err)
 		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
 
-	res, err := h.logic.URLsShorter(url)
+	res, err := h.logic.URLsShorter(id, url)
 	if err != nil {
 		c.Error(err)
 		c.AbortWithStatus(http.StatusBadRequest)
@@ -66,6 +69,8 @@ func (h *Handler) JSONURLShort(c *gin.Context) {
 
 	var status int = http.StatusCreated
 
+	id := h.Cookie(c)
+
 	if err := json.NewDecoder(c.Request.Body).Decode(&url); err != nil {
 		c.Error(err)
 		c.AbortWithStatus(http.StatusNotFound)
@@ -78,7 +83,7 @@ func (h *Handler) JSONURLShort(c *gin.Context) {
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
-	shortURL, err := h.logic.URLShorter(longURL)
+	shortURL, err := h.logic.URLShorter(id, longURL)
 	if err != nil {
 		if errors.Is(err, consts.ErrDuplicateURL) {
 			status = http.StatusConflict
@@ -99,6 +104,7 @@ func (h *Handler) JSONURLShort(c *gin.Context) {
 func (h *Handler) URLShortener(c *gin.Context) {
 
 	body, err := io.ReadAll(c.Request.Body)
+	id := h.Cookie(c)
 
 	if err != nil {
 		c.Error(err)
@@ -107,7 +113,7 @@ func (h *Handler) URLShortener(c *gin.Context) {
 	}
 
 	logger.Info(fmt.Sprintf("получен URL %s", string(body)))
-	shortURL, err := h.logic.URLShorter(string(body))
+	shortURL, err := h.logic.URLShorter(id, string(body))
 
 	if err != nil {
 		if errors.Is(err, consts.ErrDuplicateURL) {
@@ -129,7 +135,9 @@ func (h *Handler) URLShortener(c *gin.Context) {
 
 func (h *Handler) URLGetID(c *gin.Context) {
 
-	url, err := h.logic.URLGetID(c.Param("id"))
+	id := h.Cookie(c)
+
+	url, err := h.logic.URLGetID(id, c.Param("id"))
 	if err != nil {
 		c.Error(err)
 		c.AbortWithStatus(http.StatusBadRequest)
@@ -149,4 +157,40 @@ func (h *Handler) CheckPing(c *gin.Context) {
 		return
 	}
 	c.Status(http.StatusOK)
+}
+
+func (h *Handler) URLGetCookie(c *gin.Context) {
+	id, err := c.Cookie("auth")
+	if err != nil {
+		if errors.Is(err, http.ErrNoCookie) {
+			c.Error(err)
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+		c.Error(err)
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	urls, err := h.logic.GetAllURLUsers(id)
+	if err != nil {
+		if errors.Is(err, consts.ErrNotFound) {
+			c.Error(err)
+			c.AbortWithStatus(http.StatusNoContent)
+			return
+		}
+		c.Error(err)
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	c.JSON(http.StatusOK, urls)
+
+}
+
+func (h *Handler) Cookie(c *gin.Context) string {
+	id, err := c.Cookie("auth")
+	if err != nil {
+		id = h.logic.GenerateCookie()
+		c.SetCookie("auth", id, 3600, "/", "localhost", false, true)
+	}
+	return id
 }

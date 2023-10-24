@@ -12,24 +12,30 @@ type Handler interface {
 	URLGetID(c *gin.Context)
 	CheckPing(c *gin.Context) error
 	JSONURLShort(c *gin.Context, obj models.URLShort)
+	JSONURLShortBatch(c *gin.Context)
+	URLGetCookie(c *gin.Context)
+	Cookie(c *gin.Context) string
 }
 
 //go:generate go run github.com/vektra/mockery/v2@v2.20.0 --name=Storage
 type Storage interface {
-	Set(key string, value string) error
-	Get(key string) (string, error)
+	Set(id, key, value string) error
+	Get(id, key string) (string, error)
 	Count() (int, error)
 	Close() error
 	Ping() error
-	SetBatch(map[string]string) error
+	SetBatch(string, map[string]string) error
 	GetDuplicate(longURL string) (string, error)
+	GetAllURL(id string) (map[string]string, error)
 }
 
 //go:generate go run github.com/vektra/mockery/v2@v2.20.0 --name=Service
 type Service interface {
-	URLShorter(url string) (string, error)
-	URLGetID(url string) (string, error)
+	URLShorter(id, url string) (string, error)
+	URLGetID(id, url string) (string, error)
 	CheckPing() error
-	URLsShorter(url []models.BatchSet) ([]models.BatchGet, error)
+	URLsShorter(id string, url []models.BatchSet) ([]models.BatchGet, error)
 	Generate(num int) (string, error)
+	GetAllURLUsers(id string) ([]models.AllURLs, error)
+	GenerateCookie() string
 }

@@ -6,7 +6,7 @@ import (
 )
 
 type Storage struct {
-	m  map[string]string
+	m  map[string]map[string]string
 	wr *Writer
 }
 
@@ -14,23 +14,27 @@ func (s *Storage) Ping() error {
 	return nil
 }
 
-func (s *Storage) Set(key string, value string) error {
-	if s.m[key] != "" {
+func (s *Storage) Set(id, key, value string) error {
+	if s.m[id] == nil {
+		s.m[id] = make(map[string]string)
+	}
+
+	if s.m[id][key] != "" {
 		return consts.ErrAlreadyExists
 	}
 	if s.wr != nil {
-		err := s.wr.WriteURL(&models.URLFile{ShortURL: key, OriginalURL: value})
+		err := s.wr.WriteURL(&models.URLFile{UserID: id, ShortURL: key, OriginalURL: value})
 		if err != nil {
 			return err
 		}
 	}
-	s.m[key] = value
+	s.m[id][key] = value
 	return nil
 }
 
-func (s *Storage) SetBatch(m map[string]string) error {
+func (s *Storage) SetBatch(id string, m map[string]string) error {
 	for key, value := range m {
-		if s.m[key] != "" {
+		if s.m[id][key] != "" {
 			return consts.ErrAlreadyExists
 		}
 		if s.wr != nil {
@@ -39,13 +43,20 @@ func (s *Storage) SetBatch(m map[string]string) error {
 				return err
 			}
 		}
-		s.m[key] = value
+		s.m[id][key] = value
 	}
 	return nil
 }
+func (s *Storage) GetAllURL(id string) (map[string]string, error) {
+	if v, ok := s.m[id]; ok {
+		return v, nil
+	}
 
-func (s *Storage) Get(key string) (string, error) {
-	if v, ok := s.m[key]; ok {
+	return nil, consts.ErrAlreadyExists
+}
+
+func (s *Storage) Get(id string, key string) (string, error) {
+	if v, ok := s.m[id][key]; ok {
 		return v, nil
 	}
 	return "", consts.ErrNotFound

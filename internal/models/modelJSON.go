@@ -9,6 +9,7 @@ type URLShort struct {
 }
 
 type URLFile struct {
+	UserID      string `json:"user_id"`
 	ShortURL    string `json:"result"`
 	OriginalURL string `json:"original_url"`
 }
@@ -21,4 +22,9 @@ type BatchSet struct {
 type BatchGet struct {
 	CorrelationID string `json:"correlation_id"`
 	ShortURL      string `json:"short_url"`
+}
+
+type AllURLs struct {
+	ShortURL    string `json:"short_url"`
+	OriginalURL string `json:"original_url"`
 }

@@ -61,7 +61,7 @@ func TestAppHandler_URLGetID(t *testing.T) {
 			r := gin.Default()
 
 			st, err := storage.NewStorage(&cnf)
-			st.Set("AWcwasd", "http://127.0.0.1:8080/site.com")
+			st.Set("35fd02bf-0801-4041-b541-a4f2677e6df9", "AWcwasd", "http://127.0.0.1:8080/site.com")
 
 			if err != nil {
 				log.Fatal(err)
@@ -74,6 +74,11 @@ func TestAppHandler_URLGetID(t *testing.T) {
 			}
 
 			r.GET(`/:id`, h.URLGetID)
+			tt.args.r.AddCookie(&http.Cookie{
+				Name:  "auth",
+				Value: "35fd02bf-0801-4041-b541-a4f2677e6df9",
+				Path:  "/",
+			})
 			r.ServeHTTP(tt.args.w, tt.args.r)
 			assert.Equal(t, tt.args.w.Code, tt.wantStatus)
 		})
@@ -259,7 +264,8 @@ func TestHandler_JSONURLShortGzip(t *testing.T) {
 			},
 			fields: fields{
 				mckL: func(r *mocks.Service) {
-					r.On("URLShorter", "https://practicum.yandex.ru/").Return(w1, nil)
+					r.On("URLShorter", "35fd02bf-0801-4041-b541-a4f2677e6df9", "https://practicum.yandex.ru/").Return(w1, nil)
+					r.On("GenerateCookie").Return("35fd02bf-0801-4041-b541-a4f2677e6df9", nil)
 				},
 				mckS: func(r *mocks.Storage) {
 					r.On("Set", "/qwd3212d").Return(nil)
