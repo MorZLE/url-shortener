@@ -164,7 +164,7 @@ func (h *Handler) URLGetCookie(c *gin.Context) {
 	if err != nil {
 		if errors.Is(err, http.ErrNoCookie) {
 			c.Error(err)
-			c.AbortWithStatus(http.StatusUnauthorized)
+			c.AbortWithStatus(http.StatusNoContent)
 			return
 		}
 		c.Error(err)
@@ -190,7 +190,7 @@ func (h *Handler) Cookie(c *gin.Context) string {
 	id, err := c.Cookie("auth")
 	if err != nil {
 		id = h.logic.GenerateCookie()
-		c.SetCookie("auth", id, 3600, "/", "localhost", false, true)
+		c.SetCookie("auth", id, 3600, "", "localhost", false, true)
 	}
 	return id
 }
