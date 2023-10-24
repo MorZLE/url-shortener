@@ -12,3 +12,13 @@ type URLFile struct {
 	ShortURL    string `json:"result"`
 	OriginalURL string `json:"original_url"`
 }
+
+type BatchSet struct {
+	CorrelationID string `json:"correlation_id"`
+	OriginalURL   string `json:"original_url"`
+}
+
+type BatchGet struct {
+	CorrelationID string `json:"correlation_id"`
+	ShortURL      string `json:"short_url"`
+}

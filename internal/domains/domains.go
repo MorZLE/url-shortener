@@ -21,6 +21,7 @@ type StorageInterface interface {
 	Count() int
 	Close() error
 	Ping() error
+	SetBatch(map[string]string) error
 }
 
 //go:generate go run github.com/vektra/mockery/v2@v2.20.0 --name=ServiceInterface
@@ -28,4 +29,5 @@ type ServiceInterface interface {
 	URLShorter(url string) (string, error)
 	URLGetID(url string) (string, error)
 	CheckPing() error
+	URLsShorter(url []models.BatchSet) ([]models.BatchGet, error)
 }
