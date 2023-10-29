@@ -20,7 +20,7 @@ func NewService(s domains.Storage, cnf *config.Config) Service {
 	if err != nil {
 		logger.Error("Error Count:", err)
 	}
-	c.Add(uint64(num))
+	c.Add(uint64(num + 1))
 	return Service{
 		storage:      s,
 		cnf:          *cnf,
