@@ -136,22 +136,18 @@ func (h *Handler) URLShortener(c *gin.Context) {
 }
 
 func (h *Handler) URLGetID(c *gin.Context) {
-
 	id := c.Param("id")
-
 	url, err := h.logic.URLGetID(id)
 	if err != nil {
 		c.Error(err)
 		if errors.Is(err, consts.ErrBlockURL) {
-			c.AbortWithStatus(410)
+			c.AbortWithStatus(http.StatusGone)
 			return
 		}
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
-
-	logger.Info(fmt.Sprintf("отправлен url: %s", url))
-
+	logger.Info(fmt.Sprintf("redirecting to URL: %s", url))
 	c.Header("Location", url)
 	c.Status(http.StatusTemporaryRedirect)
 }
