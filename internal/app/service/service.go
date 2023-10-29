@@ -69,25 +69,28 @@ func (s *Service) URLsShorter(id string, data []models.BatchSet) ([]models.Batch
 }
 
 func (s *Service) URLShorter(id string, url string) (string, error) {
-	shortURL, err := s.storage.GetDuplicate(url)
+	shortURL, err := s.Generate(int(s.countStorage.Load()))
+	s.countStorage.Add(1)
 	if err != nil {
-		shortURL, err = s.Generate(int(s.countStorage.Load()))
-		s.countStorage.Add(1)
-		if err != nil {
-			logger.Error("error Generate:", err)
-			return "", err
+		logger.Error("error Generate:", err)
+		return "", err
+	}
+	err = s.storage.Set(id, shortURL, url)
+	if err != nil {
+		if errors.Is(err, consts.ErrDuplicateURL) {
+			shortURL, err = s.storage.GetDuplicate(url)
+			if err != nil {
+				logger.Error("error GetDuplicate:", err)
+				return "", err
+			}
+			shortURL = s.cnf.BaseURL + "/" + shortURL
+			return shortURL, consts.ErrDuplicateURL
 		}
-		err = s.storage.Set(id, shortURL, url)
-		if err != nil {
-			return "", fmt.Errorf("error Set: %s", err)
-		}
-		shortURL = s.cnf.BaseURL + "/" + shortURL
-		logger.ShortURL(shortURL)
-		return shortURL, nil
+		return "", err
 	}
 	shortURL = s.cnf.BaseURL + "/" + shortURL
 	logger.ShortURL(shortURL)
-	return shortURL, consts.ErrDuplicateURL
+	return shortURL, nil
 }
 
 func (s *Service) Generate(num int) (string, error) {
