@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/MorZLE/url-shortener/internal/app/handler"
+	"github.com/MorZLE/url-shortener/internal/app/logger"
 	"github.com/MorZLE/url-shortener/internal/app/service"
 	"github.com/MorZLE/url-shortener/internal/app/storage"
 	"github.com/MorZLE/url-shortener/internal/config"
@@ -10,6 +11,7 @@ import (
 
 func main() {
 
+	logger.Initialize()
 	cnf := config.NewConfig()
 
 	st, err := storage.NewStorage(cnf)

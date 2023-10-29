@@ -12,13 +12,16 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/lib/pq"
+	"log"
 )
 
 const (
 	createTableQuery = `CREATE TABLE IF NOT EXISTS urls (
-			short_url TEXT UNIQUE,
-			original_url TEXT UNIQUE,
-            user_id TEXT 
+    short_url TEXT UNIQUE,
+    original_url TEXT UNIQUE,
+    user_id TEXT,
+    delete_flag BOOLEAN default False
+);
 		)`
 	insertQuery       = `INSERT INTO urls (short_url, original_url, user_id) VALUES ($1, $2, $3)`
 	selectOriginalURL = `SELECT original_url, delete_flag FROM urls WHERE short_url = $1 `
@@ -76,6 +79,7 @@ func (d *DB) Set(id, key, value string) error {
 	if err != nil {
 		var pgErr *pq.Error
 		logger.Error("error Set", err)
+		log.Println("log error Set", err)
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == "23505" {
 				return consts.ErrDuplicateURL
