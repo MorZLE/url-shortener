@@ -138,29 +138,10 @@ func (d *DB) GetAllURL(id string) (map[string]string, error) {
 	return m, nil
 }
 
-func (d *DB) UpdateDelete(id string, key []string) error {
-	tx, err := d.db.BeginTx(context.Background(), nil)
+func (d *DB) UpdateDelete(id string, key string) error {
+	_, err := d.db.ExecContext(context.Background(), updateFlagDelete, id, key)
 	if err != nil {
-		return fmt.Errorf("can't start transaction: %w", err)
-	}
-
-	stmt, err := tx.PrepareContext(context.Background(), updateFlagDelete)
-	if err != nil {
-		tx.Rollback()
-		return fmt.Errorf("can't prepare statement: %w", err)
-	}
-
-	for _, keyVal := range key {
-		_, err := stmt.ExecContext(context.Background(), id, keyVal)
-		if err != nil {
-			tx.Rollback()
-			return fmt.Errorf("can't execute statement: %w", err)
-		}
-	}
-	err = tx.Commit()
-	if err != nil {
-		tx.Rollback()
-		return fmt.Errorf("can't commit transaction: %w", err)
+		return fmt.Errorf("can't update delete flag: %w", err)
 	}
 	return nil
 }

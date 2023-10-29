@@ -139,7 +139,7 @@ func (s *Service) GetAllURLUsers(id string) ([]models.AllURLs, error) {
 
 }
 
-func (s *Service) URLDelete(id string, url []string) {
+func (s *Service) URLDelete(id, url string) {
 	err := s.storage.UpdateDelete(id, url)
 	if err != nil {
 		logger.Error("error UpdateDelete:", err)

@@ -91,7 +91,7 @@ func (_m *Service) GetAllURLUsers(id string) ([]models.AllURLs, error) {
 }
 
 // URLDelete provides a mock function with given fields: id, urls
-func (_m *Service) URLDelete(id string, urls []string) {
+func (_m *Service) URLDelete(id string, urls string) {
 	_m.Called(id, urls)
 }
 

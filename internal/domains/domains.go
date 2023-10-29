@@ -28,7 +28,7 @@ type Storage interface {
 	SetBatch(string, map[string]string) error
 	GetDuplicate(longURL string) (string, error)
 	GetAllURL(id string) (map[string]string, error)
-	UpdateDelete(id string, key []string) error
+	UpdateDelete(id, key string) error
 }
 
 //go:generate go run github.com/vektra/mockery/v2@v2.20.0 --name=Service
@@ -40,5 +40,5 @@ type Service interface {
 	Generate(num int) (string, error)
 	GetAllURLUsers(id string) ([]models.AllURLs, error)
 	GenerateCookie() string
-	URLDelete(id string, urls []string)
+	URLDelete(id, urls string)
 }
