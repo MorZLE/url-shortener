@@ -20,7 +20,7 @@ func NewService(s domains.Storage, cnf *config.Config) Service {
 	if err != nil {
 		logger.Error("Error Count:", err)
 	}
-	c.Add(uint64(num + 1))
+	c.Add(uint64(num))
 	return Service{
 		storage:      s,
 		cnf:          *cnf,
@@ -70,7 +70,6 @@ func (s *Service) URLsShorter(id string, data []models.BatchSet) ([]models.Batch
 
 func (s *Service) URLShorter(id string, url string) (string, error) {
 	shortURL, err := s.Generate(int(s.countStorage.Load()))
-	s.countStorage.Add(1)
 	if err != nil {
 		logger.Error("error Generate:", err)
 		return "", err
@@ -88,6 +87,7 @@ func (s *Service) URLShorter(id string, url string) (string, error) {
 		}
 		return "", err
 	}
+	s.countStorage.Add(1)
 	shortURL = s.cnf.BaseURL + "/" + shortURL
 	logger.ShortURL(shortURL)
 	return shortURL, nil

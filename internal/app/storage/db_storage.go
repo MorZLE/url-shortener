@@ -12,7 +12,6 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/lib/pq"
-	"log"
 )
 
 const (
@@ -79,7 +78,6 @@ func (d *DB) Set(id, key, value string) error {
 	if err != nil {
 		var pgErr *pq.Error
 		logger.Error("error Set", err)
-		log.Println("log error Set", err)
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == "23505" {
 				return consts.ErrDuplicateURL
