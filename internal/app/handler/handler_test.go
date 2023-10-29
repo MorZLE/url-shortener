@@ -140,7 +140,7 @@ func TestAppHandler_URLShortener(t *testing.T) {
 
 			r.POST(`/`, h.URLShortener)
 			r.ServeHTTP(tt.args.w, tt.args.r)
-			assert.Equal(t, tt.args.w.Code, tt.wantStatus)
+			assert.Equal(t, tt.wantStatus, tt.args.w.Code)
 		})
 	}
 }
