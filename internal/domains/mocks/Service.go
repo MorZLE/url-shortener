@@ -90,6 +90,11 @@ func (_m *Service) GetAllURLUsers(id string) ([]models.AllURLs, error) {
 	return r0, r1
 }
 
+// URLDelete provides a mock function with given fields: id, urls
+func (_m *Service) URLDelete(id string, urls []string) {
+	_m.Called(id, urls)
+}
+
 // URLGetID provides a mock function with given fields: url
 func (_m *Service) URLGetID(url string) (string, error) {
 	ret := _m.Called(url)

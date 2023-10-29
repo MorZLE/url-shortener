@@ -8,4 +8,5 @@ var (
 	ErrGenShort      = errors.New("failed to generate short URL")
 	ErrGetURL        = errors.New("failed to get URL")
 	ErrDuplicateURL  = errors.New("duplicate URL")
+	ErrBlockURL      = errors.New("delete URL")
 )

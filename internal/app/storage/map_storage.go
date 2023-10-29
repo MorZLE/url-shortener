@@ -79,3 +79,8 @@ func (s *Storage) Close() error {
 func (s *Storage) GetDuplicate(longURL string) (string, error) {
 	return "", nil
 }
+
+func (s *Storage) UpdateDelete(id string, key []string) error {
+	return nil
+
+}

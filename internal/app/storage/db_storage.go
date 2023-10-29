@@ -20,10 +20,11 @@ const (
             user_id TEXT 
 		)`
 	insertQuery       = `INSERT INTO urls (short_url, original_url, user_id) VALUES ($1, $2, $3)`
-	selectOriginalURL = `SELECT original_url FROM urls WHERE short_url = $1 `
+	selectOriginalURL = `SELECT original_url, delete_flag FROM urls WHERE short_url = $1 `
 	selectShortURL    = `SELECT short_url FROM urls WHERE original_url = $1 `
 	selectCount       = `SELECT COUNT(*) FROM urls`
 	selectAllUsersURL = `SELECT short_url, original_url FROM urls WHERE user_id = $1`
+	updateFlagDelete  = `UPDATE urls SET delete_flag = true WHERE user_id = $1 and short_url = $2`
 )
 
 func NewDB(cnf *config.Config) (DB, error) {
@@ -58,11 +59,14 @@ type DB struct {
 
 func (d *DB) Get(key string) (string, error) {
 	var res string
-	err := d.db.QueryRowContext(context.Background(), selectOriginalURL, key).Scan(&res)
+	var block bool
+	err := d.db.QueryRowContext(context.Background(), selectOriginalURL, key).Scan(&res, &block)
 	if err != nil {
 		return "", fmt.Errorf("can't get url: %w", err)
 	}
-
+	if block {
+		return "", consts.ErrBlockURL
+	}
 	return res, nil
 }
 
@@ -128,6 +132,33 @@ func (d *DB) GetAllURL(id string) (map[string]string, error) {
 		m[key] = value
 	}
 	return m, nil
+}
+
+func (d *DB) UpdateDelete(id string, key []string) error {
+	tx, err := d.db.BeginTx(context.Background(), nil)
+	if err != nil {
+		return fmt.Errorf("can't start transaction: %w", err)
+	}
+
+	stmt, err := tx.PrepareContext(context.Background(), updateFlagDelete)
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("can't prepare statement: %w", err)
+	}
+
+	for _, keyVal := range key {
+		_, err := stmt.ExecContext(context.Background(), id, keyVal)
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("can't execute statement: %w", err)
+		}
+	}
+	err = tx.Commit()
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("can't commit transaction: %w", err)
+	}
+	return nil
 }
 
 func (d *DB) Count() (int, error) {

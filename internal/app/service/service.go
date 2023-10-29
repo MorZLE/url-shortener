@@ -112,6 +112,7 @@ func (s *Service) Generate(num int) (string, error) {
 func (s *Service) URLGetID(url string) (string, error) {
 	val, err := s.storage.Get(url)
 	if err != nil {
+		logger.Error("error Get:", err)
 		return "", err
 	}
 
@@ -137,6 +138,13 @@ func (s *Service) GetAllURLUsers(id string) ([]models.AllURLs, error) {
 	}
 	return resurls, nil
 
+}
+
+func (s *Service) URLDelete(id string, url []string) {
+	err := s.storage.UpdateDelete(id, url)
+	if err != nil {
+		logger.Error("error UpdateDelete:", err)
+	}
 }
 
 func (s *Service) CheckPing() error {
