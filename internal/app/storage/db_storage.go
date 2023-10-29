@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/MorZLE/url-shortener/internal/app/logger"
 	"github.com/MorZLE/url-shortener/internal/config"
 	"github.com/MorZLE/url-shortener/internal/consts"
 	"github.com/golang-migrate/migrate/v4"
@@ -74,6 +75,7 @@ func (d *DB) Set(id, key, value string) error {
 	err := d.db.QueryRowContext(context.Background(), insertQuery, key, value, id).Err()
 	if err != nil {
 		var pgErr *pq.Error
+		logger.Error("error Set", err)
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == "23505" {
 				return consts.ErrDuplicateURL
