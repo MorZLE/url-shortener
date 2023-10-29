@@ -43,8 +43,7 @@ func (s *Service) URLsShorter(id string, data []models.BatchSet) ([]models.Batch
 		}
 		shortURL, err := s.storage.GetDuplicate(url.OriginalURL)
 		if err != nil {
-			shortURL, err = s.Generate(int(s.countStorage.Load()))
-			s.countStorage.Add(1)
+			shortURL, err = s.Generate()
 			if err != nil {
 				logger.Error("error Generate:", err)
 				return nil, err
@@ -69,7 +68,7 @@ func (s *Service) URLsShorter(id string, data []models.BatchSet) ([]models.Batch
 }
 
 func (s *Service) URLShorter(id string, url string) (string, error) {
-	shortURL, err := s.Generate(int(s.countStorage.Load()))
+	shortURL, err := s.Generate()
 	if err != nil {
 		logger.Error("error Generate:", err)
 		return "", err
@@ -87,13 +86,13 @@ func (s *Service) URLShorter(id string, url string) (string, error) {
 		}
 		return "", err
 	}
-	s.countStorage.Add(1)
 	shortURL = s.cnf.BaseURL + "/" + shortURL
 	logger.ShortURL(shortURL)
 	return shortURL, nil
 }
 
-func (s *Service) Generate(num int) (string, error) {
+func (s *Service) Generate() (string, error) {
+	num := int(s.countStorage.Load())
 	hd := hashids.NewData()
 	h, err := hashids.NewWithData(hd)
 	if err != nil {
@@ -105,6 +104,7 @@ func (s *Service) Generate(num int) (string, error) {
 		logger.Error("Error Encode:", err)
 		return "", err
 	}
+	s.countStorage.Add(1)
 	return shortURL, nil
 }
 

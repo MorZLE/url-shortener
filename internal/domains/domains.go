@@ -37,7 +37,7 @@ type Service interface {
 	URLGetID(url string) (string, error)
 	CheckPing() error
 	URLsShorter(id string, url []models.BatchSet) ([]models.BatchGet, error)
-	Generate(num int) (string, error)
+	Generate() (string, error)
 	GetAllURLUsers(id string) ([]models.AllURLs, error)
 	GenerateCookie() string
 	URLDelete(id, urls string)
