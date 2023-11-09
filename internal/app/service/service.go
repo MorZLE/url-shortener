@@ -1,11 +1,13 @@
 package service
 
 import (
+	"fmt"
 	"github.com/MorZLE/url-shortener/internal/app/logger"
 	"github.com/MorZLE/url-shortener/internal/config"
 	"github.com/MorZLE/url-shortener/internal/consts"
 	"github.com/MorZLE/url-shortener/internal/domains"
 	"github.com/MorZLE/url-shortener/internal/models"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/speps/go-hashids"
 	"sync/atomic"
@@ -32,7 +34,7 @@ type Service struct {
 	countStorage *atomic.Uint64
 }
 
-func (s *Service) URLsShorter(data []models.BatchSet) ([]models.BatchGet, error) {
+func (s *Service) URLsShorter(id string, data []models.BatchSet) ([]models.BatchGet, error) {
 	var shUrls []models.BatchGet
 	shURStorage := make(map[string]string)
 	for _, url := range data {
@@ -57,7 +59,7 @@ func (s *Service) URLsShorter(data []models.BatchSet) ([]models.BatchGet, error)
 		})
 	}
 
-	err := s.storage.SetBatch(shURStorage)
+	err := s.storage.SetBatch(id, shURStorage)
 	if err != nil {
 		logger.Error("Key already exists:", err)
 		return nil, err
@@ -66,14 +68,14 @@ func (s *Service) URLsShorter(data []models.BatchSet) ([]models.BatchGet, error)
 	return shUrls, nil
 }
 
-func (s *Service) URLShorter(url string) (string, error) {
+func (s *Service) URLShorter(id string, url string) (string, error) {
 	shortURL, err := s.Generate(int(s.countStorage.Load()))
 	s.countStorage.Add(1)
 	if err != nil {
 		logger.Error("Error Generate:", err)
 		return "", err
 	}
-	err = s.storage.Set(shortURL, url)
+	err = s.storage.Set(id, shortURL, url)
 	if err != nil {
 		if errors.Is(err, consts.ErrDuplicateURL) {
 			shortURL, err = s.storage.GetDuplicate(url)
@@ -117,10 +119,30 @@ func (s *Service) URLGetID(url string) (string, error) {
 
 }
 
+func (s *Service) GetAllURLUsers(id string) ([]models.AllURLs, error) {
+	var resurls []models.AllURLs
+	urls, err := s.storage.GetAllURL(id)
+	if err != nil {
+		if errors.Is(err, consts.ErrDuplicateURL) {
+			return nil, consts.ErrDuplicateURL
+		}
+		return nil, fmt.Errorf("error GetAllURL: %s", err)
+	}
+	for k, v := range urls {
+		shortURL := s.cnf.BaseURL + "/" + k
+		resurls = append(resurls, models.AllURLs{
+			ShortURL:    shortURL,
+			OriginalURL: v,
+		})
+	}
+	return resurls, nil
+
+}
+
 func (s *Service) CheckPing() error {
 	return s.storage.Ping()
 }
 
-func (s *Service) GenCookie() string {
-	return ""
+func (s *Service) GenerateCookie() string {
+	return uuid.New().String()
 }

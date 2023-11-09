@@ -75,8 +75,8 @@ func (c *Reader) Close() error {
 	return c.file.Close()
 }
 
-func (c *Reader) ReadURL() (map[string]string, error) {
-	m := make(map[string]string)
+func (c *Reader) ReadURL() (map[string]map[string]string, error) {
+	m := make(map[string]map[string]string)
 	defer c.Close()
 
 	for {
@@ -93,7 +93,7 @@ func (c *Reader) ReadURL() (map[string]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		m[url.ShortURL] = url.OriginalURL
+		m[url.UserID][url.ShortURL] = url.OriginalURL
 	}
 
 	return m, nil

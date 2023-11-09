@@ -32,5 +32,5 @@ func NewStorage(cnf *config.Config) (domains.Storage, error) {
 		return &Storage{m: m, wr: writer}, nil
 	}
 
-	return &Storage{m: make(map[string]string)}, nil
+	return &Storage{m: make(map[string]map[string]string)}, nil
 }

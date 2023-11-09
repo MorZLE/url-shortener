@@ -24,17 +24,27 @@ func (_m *Storage) Close() error {
 }
 
 // Count provides a mock function with given fields:
-func (_m *Storage) Count() int {
+func (_m *Storage) Count() (int, error) {
 	ret := _m.Called()
 
 	var r0 int
+	var r1 error
+	if rf, ok := ret.Get(0).(func() (int, error)); ok {
+		return rf()
+	}
 	if rf, ok := ret.Get(0).(func() int); ok {
 		r0 = rf()
 	} else {
 		r0 = ret.Get(0).(int)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // Get provides a mock function with given fields: key
@@ -54,6 +64,32 @@ func (_m *Storage) Get(key string) (string, error) {
 
 	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(key)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetAllURL provides a mock function with given fields: id
+func (_m *Storage) GetAllURL(id string) (map[string]string, error) {
+	ret := _m.Called(id)
+
+	var r0 map[string]string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (map[string]string, error)); ok {
+		return rf(id)
+	}
+	if rf, ok := ret.Get(0).(func(string) map[string]string); ok {
+		r0 = rf(id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(id)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -99,13 +135,13 @@ func (_m *Storage) Ping() error {
 	return r0
 }
 
-// Set provides a mock function with given fields: key, value
-func (_m *Storage) Set(key string, value string) error {
-	ret := _m.Called(key, value)
+// Set provides a mock function with given fields: id, key, value
+func (_m *Storage) Set(id string, key string, value string) error {
+	ret := _m.Called(id, key, value)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(key, value)
+	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
+		r0 = rf(id, key, value)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -113,13 +149,13 @@ func (_m *Storage) Set(key string, value string) error {
 	return r0
 }
 
-// SetBatch provides a mock function with given fields: _a0
-func (_m *Storage) SetBatch(_a0 map[string]string) error {
-	ret := _m.Called(_a0)
+// SetBatch provides a mock function with given fields: _a0, _a1
+func (_m *Storage) SetBatch(_a0 string, _a1 map[string]string) error {
+	ret := _m.Called(_a0, _a1)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(map[string]string) error); ok {
-		r0 = rf(_a0)
+	if rf, ok := ret.Get(0).(func(string, map[string]string) error); ok {
+		r0 = rf(_a0, _a1)
 	} else {
 		r0 = ret.Error(0)
 	}
