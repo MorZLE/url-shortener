@@ -51,7 +51,7 @@ func (s *Service) URLsShorter(id string, data []models.BatchSet) ([]models.Batch
 			shURStorage[shortURL] = url.OriginalURL
 		}
 
-		shortURL = s.cnf.BaseURL + "/" + shortURL
+		shortURL = fmt.Sprintf(s.cnf.BaseURL + "/" + shortURL)
 		shUrls = append(shUrls, models.BatchGet{
 			CorrelationID: url.CorrelationID,
 			ShortURL:      shortURL,
@@ -68,7 +68,6 @@ func (s *Service) URLsShorter(id string, data []models.BatchSet) ([]models.Batch
 }
 
 func (s *Service) URLShorter(id string, url string) (string, error) {
-
 	shortURL, err := s.storage.GetDuplicate(url)
 	if err != nil {
 		shortURL, err = s.Generate()
@@ -80,10 +79,10 @@ func (s *Service) URLShorter(id string, url string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		shortURL = s.cnf.BaseURL + "/" + shortURL
+		shortURL = fmt.Sprintf(s.cnf.BaseURL + "/" + shortURL)
 		return shortURL, nil
 	}
-	shortURL = s.cnf.BaseURL + "/" + shortURL
+	shortURL = fmt.Sprintf(s.cnf.BaseURL + "/" + shortURL)
 	return shortURL, consts.ErrDuplicateURL
 }
 
@@ -125,7 +124,7 @@ func (s *Service) GetAllURLUsers(id string) ([]models.AllURLs, error) {
 		return nil, fmt.Errorf("error GetAllURL: %s", err)
 	}
 	for k, v := range urls {
-		shortURL := s.cnf.BaseURL + "/" + k
+		shortURL := fmt.Sprintf(s.cnf.BaseURL + "/" + k)
 		resurls = append(resurls, models.AllURLs{
 			ShortURL:    shortURL,
 			OriginalURL: v,

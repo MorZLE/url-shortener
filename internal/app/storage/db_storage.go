@@ -22,7 +22,7 @@ const (
     delete_flag BOOLEAN default False
 );
 		)`
-	insertQuery       = `INSERT INTO urls (short_url, original_url, user_id) VALUES ($1, $2, $3)`
+	insertURLQuery    = `INSERT INTO urls (short_url, original_url, user_id) VALUES ($1, $2, $3)`
 	selectOriginalURL = `SELECT original_url, delete_flag FROM urls WHERE short_url = $1 `
 	selectShortURL    = `SELECT short_url FROM urls WHERE original_url = $1 `
 	selectCount       = `SELECT COUNT(*) FROM urls`
@@ -74,7 +74,7 @@ func (d *DB) Get(key string) (string, error) {
 }
 
 func (d *DB) Set(id, key, value string) error {
-	err := d.db.QueryRowContext(context.Background(), insertQuery, key, value, id).Err()
+	err := d.db.QueryRowContext(context.Background(), insertURLQuery, key, value, id).Err()
 	if err != nil {
 		var pgErr *pq.Error
 		logger.Error("error Set", err)
@@ -103,7 +103,7 @@ func (d *DB) SetBatch(id string, m map[string]string) error {
 		return fmt.Errorf("can't start transaction: %w", err)
 	}
 	for key, value := range m {
-		_, err = tr.ExecContext(context.Background(), insertQuery, key, value, id)
+		_, err = tr.ExecContext(context.Background(), insertURLQuery, key, value, id)
 		if err != nil {
 			tr.Rollback()
 			return fmt.Errorf("can't set url: %w", err)
@@ -123,17 +123,17 @@ func (d *DB) GetAllURL(id string) (map[string]string, error) {
 		return m, fmt.Errorf("can't get all urls: %w", err)
 	}
 	for rows.Next() {
-		err := rows.Err()
-		if err != nil {
-			return m, fmt.Errorf("can't get all urls: %w", err)
-
-		}
 		var key, value string
 		err = rows.Scan(&key, &value)
 		if err != nil {
 			return m, fmt.Errorf("can't change map urls: %w", err)
 		}
 		m[key] = value
+	}
+	err = rows.Err()
+	if err != nil {
+		return m, fmt.Errorf("can't get all urls: %w", err)
+
 	}
 	return m, nil
 }

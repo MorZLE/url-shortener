@@ -189,20 +189,9 @@ func (h *Handler) URLGetCookie(c *gin.Context) {
 
 // URLDelete deletes the URLs associated with the given ID.
 func (h *Handler) URLDelete(c *gin.Context) {
-	id, err := c.Cookie("auth")
-	if err != nil {
-		if errors.Is(err, http.ErrNoCookie) {
-			c.Error(err)
-			c.AbortWithStatus(http.StatusUnauthorized)
-			return
-		}
-		c.Error(err)
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-
+	id := h.GetCookie(c)
 	var urls []string
-	err = c.ShouldBindJSON(&urls)
+	err := c.ShouldBindJSON(&urls)
 	if err != nil {
 		c.Error(err)
 		c.AbortWithStatus(http.StatusBadRequest)
@@ -222,6 +211,21 @@ func (h *Handler) Cookie(c *gin.Context) string {
 	if err != nil {
 		id = h.logic.GenerateCookie()
 		c.SetCookie("auth", id, 3600, "", "localhost", false, true)
+	}
+	return id
+}
+
+func (h *Handler) GetCookie(c *gin.Context) string {
+	id, err := c.Cookie("auth")
+	if err != nil {
+		if errors.Is(err, http.ErrNoCookie) {
+			c.Error(err)
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return ""
+		}
+		c.Error(err)
+		c.AbortWithStatus(http.StatusBadRequest)
+		return ""
 	}
 	return id
 }
