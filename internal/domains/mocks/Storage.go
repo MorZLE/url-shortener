@@ -163,6 +163,20 @@ func (_m *Storage) SetBatch(_a0 string, _a1 map[string]string) error {
 	return r0
 }
 
+// UpdateDelete provides a mock function with given fields: id, key
+func (_m *Storage) UpdateDelete(id string, key string) error {
+	ret := _m.Called(id, key)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(id, key)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 type mockConstructorTestingTNewStorage interface {
 	mock.TestingT
 	Cleanup(func())

@@ -43,16 +43,15 @@ func (s *Service) URLsShorter(id string, data []models.BatchSet) ([]models.Batch
 		}
 		shortURL, err := s.storage.GetDuplicate(url.OriginalURL)
 		if err != nil {
-			shortURL, err = s.Generate(int(s.countStorage.Load()))
-			s.countStorage.Add(1)
+			shortURL, err = s.Generate()
 			if err != nil {
-				logger.Error("Error Encode:", err)
+				logger.Error("error Generate:", err)
 				return nil, err
 			}
 			shURStorage[shortURL] = url.OriginalURL
 		}
 
-		shortURL = s.cnf.BaseURL + "/" + shortURL
+		shortURL = fmt.Sprintf(s.cnf.BaseURL + "/" + shortURL)
 		shUrls = append(shUrls, models.BatchGet{
 			CorrelationID: url.CorrelationID,
 			ShortURL:      shortURL,
@@ -61,7 +60,7 @@ func (s *Service) URLsShorter(id string, data []models.BatchSet) ([]models.Batch
 
 	err := s.storage.SetBatch(id, shURStorage)
 	if err != nil {
-		logger.Error("Key already exists:", err)
+		logger.Error("key already exists:", err)
 		return nil, err
 	}
 
@@ -69,32 +68,26 @@ func (s *Service) URLsShorter(id string, data []models.BatchSet) ([]models.Batch
 }
 
 func (s *Service) URLShorter(id string, url string) (string, error) {
-	shortURL, err := s.Generate(int(s.countStorage.Load()))
-	s.countStorage.Add(1)
+	shortURL, err := s.storage.GetDuplicate(url)
 	if err != nil {
-		logger.Error("Error Generate:", err)
-		return "", err
-	}
-	err = s.storage.Set(id, shortURL, url)
-	if err != nil {
-		if errors.Is(err, consts.ErrDuplicateURL) {
-			shortURL, err = s.storage.GetDuplicate(url)
-			if err != nil {
-				logger.Error("Error GetDuplicate:", err)
-				return "", err
-			}
-			shortURL = s.cnf.BaseURL + "/" + shortURL
-			logger.Info("Дубль URL: " + shortURL)
-			return shortURL, consts.ErrDuplicateURL
+		shortURL, err = s.Generate()
+		if err != nil {
+			logger.Error("error Generate:", err)
+			return "", err
 		}
-		return "", err
+		err = s.storage.Set(id, shortURL, url)
+		if err != nil {
+			return "", err
+		}
+		shortURL = fmt.Sprintf(s.cnf.BaseURL + "/" + shortURL)
+		return shortURL, nil
 	}
-	shortURL = s.cnf.BaseURL + "/" + shortURL
-	logger.ShortURL(shortURL)
-	return shortURL, nil
+	shortURL = fmt.Sprintf(s.cnf.BaseURL + "/" + shortURL)
+	return shortURL, consts.ErrDuplicateURL
 }
 
-func (s *Service) Generate(num int) (string, error) {
+func (s *Service) Generate() (string, error) {
+	num := int(s.countStorage.Load())
 	hd := hashids.NewData()
 	h, err := hashids.NewWithData(hd)
 	if err != nil {
@@ -106,12 +99,14 @@ func (s *Service) Generate(num int) (string, error) {
 		logger.Error("Error Encode:", err)
 		return "", err
 	}
+	s.countStorage.Add(1)
 	return shortURL, nil
 }
 
 func (s *Service) URLGetID(url string) (string, error) {
 	val, err := s.storage.Get(url)
 	if err != nil {
+		logger.Error("error Get:", err)
 		return "", err
 	}
 
@@ -129,7 +124,7 @@ func (s *Service) GetAllURLUsers(id string) ([]models.AllURLs, error) {
 		return nil, fmt.Errorf("error GetAllURL: %s", err)
 	}
 	for k, v := range urls {
-		shortURL := s.cnf.BaseURL + "/" + k
+		shortURL := fmt.Sprintf(s.cnf.BaseURL + "/" + k)
 		resurls = append(resurls, models.AllURLs{
 			ShortURL:    shortURL,
 			OriginalURL: v,
@@ -137,6 +132,13 @@ func (s *Service) GetAllURLUsers(id string) ([]models.AllURLs, error) {
 	}
 	return resurls, nil
 
+}
+
+func (s *Service) URLDelete(id, url string) {
+	err := s.storage.UpdateDelete(id, url)
+	if err != nil {
+		logger.Error("error UpdateDelete:", err)
+	}
 }
 
 func (s *Service) CheckPing() error {

@@ -57,6 +57,11 @@ func (_m *Handler) RunServer() {
 	_m.Called()
 }
 
+// URLDelete provides a mock function with given fields: c
+func (_m *Handler) URLDelete(c *gin.Context) {
+	_m.Called(c)
+}
+
 // URLGetCookie provides a mock function with given fields: c
 func (_m *Handler) URLGetCookie(c *gin.Context) {
 	_m.Called(c)

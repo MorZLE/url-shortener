@@ -40,6 +40,8 @@ func (h *Handler) RunServer() {
 	router.GET(`/ping`, h.CheckPing)
 	router.GET(`/api/user/urls`, h.URLGetCookie)
 
+	router.DELETE(`/api/user/urls`, h.URLDelete)
+
 	log.Fatal(router.Run(h.cnf.ServerAddr))
 
 }
@@ -134,18 +136,17 @@ func (h *Handler) URLShortener(c *gin.Context) {
 }
 
 func (h *Handler) URLGetID(c *gin.Context) {
-
 	id := c.Param("id")
-
 	url, err := h.logic.URLGetID(id)
 	if err != nil {
-		c.Error(err)
+		if errors.Is(err, consts.ErrBlockURL) {
+			c.AbortWithStatus(http.StatusGone)
+			return
+		}
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
-
-	logger.Info(fmt.Sprintf("отправлен url: %s", url))
-
+	logger.Info(fmt.Sprintf("redirecting to URL: %s", url))
 	c.Header("Location", url)
 	c.Status(http.StatusTemporaryRedirect)
 }
@@ -186,11 +187,44 @@ func (h *Handler) URLGetCookie(c *gin.Context) {
 
 }
 
+// URLDelete deletes the URLs associated with the given ID.
+func (h *Handler) URLDelete(c *gin.Context) {
+	id := h.GetCookie(c)
+	var urls []string
+	err := c.ShouldBindJSON(&urls)
+	if err != nil {
+		c.Error(err)
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	for _, v := range urls {
+		v := v
+		go h.logic.URLDelete(id, v)
+	}
+
+	c.Status(http.StatusAccepted)
+}
+
 func (h *Handler) Cookie(c *gin.Context) string {
 	id, err := c.Cookie("auth")
 	if err != nil {
 		id = h.logic.GenerateCookie()
 		c.SetCookie("auth", id, 3600, "", "localhost", false, true)
+	}
+	return id
+}
+
+func (h *Handler) GetCookie(c *gin.Context) string {
+	id, err := c.Cookie("auth")
+	if err != nil {
+		if errors.Is(err, http.ErrNoCookie) {
+			c.Error(err)
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return ""
+		}
+		c.Error(err)
+		c.AbortWithStatus(http.StatusBadRequest)
+		return ""
 	}
 	return id
 }

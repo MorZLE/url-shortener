@@ -26,23 +26,23 @@ func (_m *Service) CheckPing() error {
 	return r0
 }
 
-// Generate provides a mock function with given fields: num
-func (_m *Service) Generate(num int) (string, error) {
-	ret := _m.Called(num)
+// Generate provides a mock function with given fields:
+func (_m *Service) Generate() (string, error) {
+	ret := _m.Called()
 
 	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(int) (string, error)); ok {
-		return rf(num)
+	if rf, ok := ret.Get(0).(func() (string, error)); ok {
+		return rf()
 	}
-	if rf, ok := ret.Get(0).(func(int) string); ok {
-		r0 = rf(num)
+	if rf, ok := ret.Get(0).(func() string); ok {
+		r0 = rf()
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(int) error); ok {
-		r1 = rf(num)
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -88,6 +88,11 @@ func (_m *Service) GetAllURLUsers(id string) ([]models.AllURLs, error) {
 	}
 
 	return r0, r1
+}
+
+// URLDelete provides a mock function with given fields: id, urls
+func (_m *Service) URLDelete(id string, urls string) {
+	_m.Called(id, urls)
 }
 
 // URLGetID provides a mock function with given fields: url

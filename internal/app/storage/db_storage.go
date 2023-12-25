@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/MorZLE/url-shortener/internal/app/logger"
 	"github.com/MorZLE/url-shortener/internal/config"
 	"github.com/MorZLE/url-shortener/internal/consts"
 	"github.com/golang-migrate/migrate/v4"
@@ -15,15 +16,17 @@ import (
 
 const (
 	createTableQuery = `CREATE TABLE IF NOT EXISTS urls (
-			short_url TEXT UNIQUE,
-			original_url TEXT UNIQUE,
-            user_id TEXT 
+    short_url TEXT UNIQUE,
+    original_url TEXT UNIQUE,
+    user_id TEXT,
+    delete_flag BOOLEAN default False);
 		)`
-	insertQuery       = `INSERT INTO urls (short_url, original_url, user_id) VALUES ($1, $2, $3)`
-	selectOriginalURL = `SELECT original_url FROM urls WHERE short_url = $1 `
+	insertURLQuery    = `INSERT INTO urls (short_url, original_url, user_id) VALUES ($1, $2, $3)`
+	selectOriginalURL = `SELECT original_url, delete_flag FROM urls WHERE short_url = $1 `
 	selectShortURL    = `SELECT short_url FROM urls WHERE original_url = $1 `
 	selectCount       = `SELECT COUNT(*) FROM urls`
 	selectAllUsersURL = `SELECT short_url, original_url FROM urls WHERE user_id = $1`
+	updateFlagDelete  = `UPDATE urls SET delete_flag = true WHERE user_id = $1 and short_url = $2`
 )
 
 func NewDB(cnf *config.Config) (DB, error) {
@@ -58,18 +61,22 @@ type DB struct {
 
 func (d *DB) Get(key string) (string, error) {
 	var res string
-	err := d.db.QueryRowContext(context.Background(), selectOriginalURL, key).Scan(&res)
+	var block bool
+	err := d.db.QueryRowContext(context.Background(), selectOriginalURL, key).Scan(&res, &block)
 	if err != nil {
 		return "", fmt.Errorf("can't get url: %w", err)
 	}
-
+	if block {
+		return "", consts.ErrBlockURL
+	}
 	return res, nil
 }
 
 func (d *DB) Set(id, key, value string) error {
-	err := d.db.QueryRowContext(context.Background(), insertQuery, key, value, id).Err()
+	err := d.db.QueryRowContext(context.Background(), insertURLQuery, key, value, id).Err()
 	if err != nil {
 		var pgErr *pq.Error
+		logger.Error("error Set", err)
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == "23505" {
 				return consts.ErrDuplicateURL
@@ -95,7 +102,7 @@ func (d *DB) SetBatch(id string, m map[string]string) error {
 		return fmt.Errorf("can't start transaction: %w", err)
 	}
 	for key, value := range m {
-		_, err = tr.ExecContext(context.Background(), insertQuery, key, value, id)
+		_, err = tr.ExecContext(context.Background(), insertURLQuery, key, value, id)
 		if err != nil {
 			tr.Rollback()
 			return fmt.Errorf("can't set url: %w", err)
@@ -115,11 +122,6 @@ func (d *DB) GetAllURL(id string) (map[string]string, error) {
 		return m, fmt.Errorf("can't get all urls: %w", err)
 	}
 	for rows.Next() {
-		err := rows.Err()
-		if err != nil {
-			return m, fmt.Errorf("can't get all urls: %w", err)
-
-		}
 		var key, value string
 		err = rows.Scan(&key, &value)
 		if err != nil {
@@ -127,7 +129,20 @@ func (d *DB) GetAllURL(id string) (map[string]string, error) {
 		}
 		m[key] = value
 	}
+	err = rows.Err()
+	if err != nil {
+		return m, fmt.Errorf("can't get all urls: %w", err)
+
+	}
 	return m, nil
+}
+
+func (d *DB) UpdateDelete(id string, key string) error {
+	_, err := d.db.ExecContext(context.Background(), updateFlagDelete, id, key)
+	if err != nil {
+		return fmt.Errorf("can't update delete flag: %w", err)
+	}
+	return nil
 }
 
 func (d *DB) Count() (int, error) {
