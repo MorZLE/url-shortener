@@ -19,8 +19,7 @@ const (
     short_url TEXT UNIQUE,
     original_url TEXT UNIQUE,
     user_id TEXT,
-    delete_flag BOOLEAN default False
-);
+    delete_flag BOOLEAN default False);
 		)`
 	insertURLQuery    = `INSERT INTO urls (short_url, original_url, user_id) VALUES ($1, $2, $3)`
 	selectOriginalURL = `SELECT original_url, delete_flag FROM urls WHERE short_url = $1 `

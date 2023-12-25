@@ -197,11 +197,10 @@ func (h *Handler) URLDelete(c *gin.Context) {
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
-	go func(id string, urls []string) {
-		for _, v := range urls {
-			h.logic.URLDelete(id, v)
-		}
-	}(id, urls)
+	for _, v := range urls {
+		v := v
+		go h.logic.URLDelete(id, v)
+	}
 
 	c.Status(http.StatusAccepted)
 }
